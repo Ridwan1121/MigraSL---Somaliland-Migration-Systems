@@ -11,8 +11,12 @@ if (-not $python) {
 $version = & python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
 Write-Host "Python version: $version"
 
-if ($version -lt "3.10") {
-    throw "This project requires Python 3.10 or newer."
+$versionParts = $version.Split('.')
+$major = [int]$versionParts[0]
+$minor = [int]$versionParts[1]
+
+if ($major -lt 3 -or ($major -eq 3 -and $minor -lt 12)) {
+    throw "This project requires Python 3.12 or newer."
 }
 
 Write-Host "Installing project dependencies..."

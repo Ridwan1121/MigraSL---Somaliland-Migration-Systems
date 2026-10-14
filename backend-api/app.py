@@ -1,5 +1,5 @@
 ﻿"""
-Diwaanka Ajaanibka - Backend API (DHAMAYSTIRAN)
+MigraSL - Somaliland Migration Systems Backend API
 """
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, status, WebSocket, WebSocketDisconnect
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -38,7 +38,7 @@ except ImportError:
 # ============================================================
 # CONFIGURATION
 # ============================================================
-SECRET_KEY = os.getenv("SECRET_KEY", "diwaanka-ajaanibka-secret-key-2026-very-secure")
+SECRET_KEY = os.getenv("SECRET_KEY", "migrasl-secret-key-2026-very-secure")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -55,7 +55,7 @@ USERS_DB = {
     "Ridwan": {
         "username": "Ridwan",
         "full_name": "Ridwan Farah",
-        "email": "ridwan@diwaanka.so",
+        "email": "ridwan@migrasl.so",
         "hashed_password": pwd_context.hash("AKIID12345"),
         "role": "admin",
         "disabled": False
@@ -63,7 +63,7 @@ USERS_DB = {
     "officer": {
         "username": "officer",
         "full_name": "Xasan Cali",
-        "email": "officer@diwaanka.so",
+        "email": "officer@migrasl.so",
         "hashed_password": pwd_context.hash("officer123"),
         "role": "officer",
         "disabled": False
@@ -120,8 +120,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 # APP
 # ============================================================
 app = FastAPI(
-    title="Diwaanka Ajaanibka API",
-    description="API-ga weji-aqoonsiga ee hay'adda socdaalka",
+    title="MigraSL API",
+    description="API-ga weji-aqoonsiga ee hay'adda socdaalka Somaliland",
     version="2.0.0"
 )
 
@@ -171,7 +171,7 @@ class Admin(BaseModel):
 def home():
     return {
         "status": "success",
-        "message": "Ku soo dhawaada API-ga Diwaanka Ajaanibka!",
+        "message": "Ku soo dhawaada API-ga MigraSL - Somaliland Migration Systems!",
         "version": "2.0.0",
         "endpoints": {
             "/health": "Hubi haddii API-gu shaqeynayo",

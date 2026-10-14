@@ -9,13 +9,34 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0e1a; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; color: #fff; }
-        .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; }
-        .sidebar { background: rgba(10,14,26,0.95); border-right: 1px solid rgba(255,255,255,0.06); min-height: 100vh; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(59,130,246,0.18), transparent 25%),
+                radial-gradient(circle at top right, rgba(14,165,233,0.12), transparent 30%),
+                #07111d;
+            font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; color: #fff;
+        }
+        .glass {
+            background: rgba(15,23,42,0.72);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(148,163,184,0.14);
+            border-radius: 18px;
+            box-shadow: 0 12px 40px rgba(15,23,42,0.35);
+        }
+        .sidebar {
+            background: rgba(8,15,28,0.96);
+            border-right: 1px solid rgba(148,163,184,0.12);
+            min-height: 100vh; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+        }
         .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: #94a3b8; transition: all 0.3s ease; cursor: pointer; text-decoration: none; }
         .sidebar-link:hover { background: rgba(59,130,246,0.1); color: #fff; }
         .sidebar-link.active { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); }
-        .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px 24px; transition: all 0.3s ease; }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(15,23,42,0.92), rgba(30,41,59,0.86));
+            border: 1px solid rgba(148,163,184,0.12);
+            border-radius: 18px; padding: 20px 24px; transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(15,23,42,0.2);
+        }
         .stat-card:hover { background: rgba(255,255,255,0.06); transform: translateY(-4px); }
         .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
         .page-content { display: none; }
@@ -27,6 +48,15 @@
         .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
         .badge-success { background: rgba(34,197,94,0.2); color: #22c55e; }
         .badge-warning { background: rgba(234,179,8,0.2); color: #eab308; }
+        .badge-danger { background: rgba(239,68,68,0.18); color: #f87171; }
+        .status-pill { display: inline-flex; align-items: center; gap: 6px; }
+        .status-pill::before { content: ''; width: 8px; height: 8px; border-radius: 999px; background: currentColor; display: inline-block; }
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(139,92,246,0.12));
+            border: 1px solid rgba(148,163,184,0.12);
+            border-radius: 18px;
+            padding: 22px 24px;
+        }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
         ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius: 10px; }
@@ -140,6 +170,98 @@
                     <h3 class="text-white font-semibold mb-4"><i class="fas fa-chart-pie text-purple-400 mr-2"></i>Wadamada Ugu Badan</h3>
                     <canvas id="countryChart" height="200"></canvas>
                 </div>
+            </div>
+        </div>
+
+        <!-- PAGE: ADMIN -->
+        <div id="page-admin" class="page-content">
+            <div class="hero-banner mb-6">
+                <div class="flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                        <p class="text-blue-300 text-xs uppercase tracking-[0.22em] font-semibold">Somaliland Migration Systems</p>
+                        <h3 class="text-2xl font-bold text-white mt-2">Maamulka Sare</h3>
+                    </div>
+                    <div class="badge badge-success text-sm">Operational Dashboard</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Inta Joogta</p>
+                            <p class="text-3xl font-bold text-white mt-1" id="activeStaff">0</p>
+                        </div>
+                        <div class="stat-icon bg-emerald-500/10 text-emerald-400"><i class="fas fa-user-check"></i></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Inta Maqan</p>
+                            <p class="text-3xl font-bold text-white mt-1" id="absentStaff">0</p>
+                        </div>
+                        <div class="stat-icon bg-red-500/10 text-red-400"><i class="fas fa-user-slash"></i></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Inta Fasax Ku Maqan</p>
+                            <p class="text-3xl font-bold text-white mt-1" id="leaveStaff">0</p>
+                        </div>
+                        <div class="stat-icon bg-amber-500/10 text-amber-400"><i class="fas fa-calendar-alt"></i></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Buundada Safaarado</p>
+                            <p class="text-3xl font-bold text-white mt-1" id="missionCount">0</p>
+                        </div>
+                        <div class="stat-icon bg-cyan-500/10 text-cyan-400"><i class="fas fa-globe"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
+                <div class="glass p-6 xl:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-white">Xogta Shaqaalaha</h3>
+                        <span class="text-xs text-gray-400">Updated today</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="border-b border-white/10">
+                                <tr>
+                                    <th class="pb-3 text-gray-400 text-sm">Magaca</th>
+                                    <th class="pb-3 text-gray-400 text-sm">Xafiiska</th>
+                                    <th class="pb-3 text-gray-400 text-sm">Door</th>
+                                    <th class="pb-3 text-gray-400 text-sm">Xaaladda</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminPresenceTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Safaaradaha Somaliland</h3>
+                    <div id="missionNetwork" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: OFFICERS -->
+        <div id="page-officers" class="page-content">
+            <div class="glass p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-white">Askarta Goobta</h3>
+                    <button onclick="renderOfficers()" class="flex items-center gap-2 bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl hover:bg-blue-500/30 transition">
+                        <i class="fas fa-sync"></i> Cusbooneysii
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="officersList"></div>
             </div>
         </div>
 
@@ -369,8 +491,10 @@ function showPage(page) {
     
     const titles = {
         dashboard: ['Dashboard', 'MigraSL - Somaliland Migration Systems'],
+        admin: ['Maamulka Sare', 'Shaqaalaha, jiritaanka iyo safaaradaha'],
+        officers: ['Askarta Goobta', 'Liiska shaqaalaha xafiisyada'],
         immigrants: ['Ajaanibta', 'Liiska ajaanibta'],
-        countries: ['Wadamada', '197 wadan'],
+        countries: ['Wadamada', 'Dadka aduunka oo dhan'],
         somaliland: ['Somaliland', '6 gobol'],
         offices: ['Xafiisyada', 'Liiska xafiisyada'],
         scan: ['Weji-Aqoonsi', 'Aqoonso wejiyada']
@@ -475,21 +599,22 @@ async function detectFaces() {
 }
 
 // ============================================================
-// COUNTRIES DATA
+// WORLDS COUNTRIES DATA
 // ============================================================
-const countries = [
-    {name:'Somalia',flag:'🇸🇴'},{name:'Kenya',flag:'🇰🇪'},{name:'Ethiopia',flag:'🇪🇹'},{name:'Djibouti',flag:'🇩🇯'},
-    {name:'Egypt',flag:'🇪🇬'},{name:'South Africa',flag:'🇿🇦'},{name:'Nigeria',flag:'🇳🇬'},{name:'Ghana',flag:'🇬🇭'},
-    {name:'UK',flag:'🇬🇧'},{name:'USA',flag:'🇺🇸'},{name:'Canada',flag:'🇨🇦'},{name:'Australia',flag:'🇦🇺'},
-    {name:'Germany',flag:'🇩🇪'},{name:'France',flag:'🇫🇷'},{name:'Italy',flag:'🇮🇹'},{name:'Spain',flag:'🇪🇸'},
-    {name:'Turkey',flag:'🇹🇷'},{name:'UAE',flag:'🇦🇪'},{name:'Saudi Arabia',flag:'🇸🇦'},{name:'India',flag:'🇮🇳'}
+const worldCountries = [
+    'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cabo Verde','Cambodia','Cameroon','Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia','Cuba','Cyprus','Czech Republic','Democratic Republic of the Congo','Denmark','Djibouti','Dominica','Dominican Republic','Ecuador','Egypt','El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece','Grenada','Guatemala','Guinea','Guinea-Bissau','Guyana','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kiribati','Kuwait','Kyrgyzstan','Laos','Latvia','Lebanon','Lesotho','Liberia','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malawi','Malaysia','Maldives','Mali','Malta','Marshall Islands','Mauritania','Mauritius','Mexico','Micronesia','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nauru','Nepal','Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Korea','North Macedonia','Norway','Oman','Pakistan','Palau','Palestine','Panama','Papua New Guinea','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda','Saint Kitts and Nevis','Saint Lucia','Saint Vincent and the Grenadines','Samoa','San Marino','Sao Tome and Principe','Saudi Arabia','Senegal','Serbia','Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia','Solomon Islands','Somalia','South Africa','South Korea','South Sudan','Spain','Sri Lanka','Sudan','Suriname','Sweden','Switzerland','Syria','Taiwan','Tajikistan','Tanzania','Thailand','Timor-Leste','Togo','Tonga','Trinidad and Tobago','Tunisia','Turkey','Turkmenistan','Tuvalu','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan','Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe','Somaliland'
 ];
+
+const countries = worldCountries.map((name, index) => {
+    const flags = ['🇦🇫','🇦🇱','🇩🇿','🇦🇩','🇦🇴','🇦🇬','🇦🇷','🇦🇲','🇦🇺','🇦🇹','🇦🇿','🇧🇸','🇧🇭','🇧🇩','🇧🇧','🇧🇾','🇧🇪','🇧🇿','🇧🇯','🇧🇹','🇧🇴','🇧🇦','🇧🇼','🇧🇷','🇧🇳','🇧🇬','🇧🇫','🇧🇮','🇨🇻','🇰🇭','🇨🇲','🇨🇦','🇨🇫','🇹🇩','🇨🇱','🇨🇳','🇨🇴','🇰🇲','🇨🇬','🇨🇷','🇭🇷','🇨🇺','🇨🇾','🇨🇿','🇨🇩','🇩🇰','🇩🇯','🇩🇲','🇩🇴','🇪🇨','🇪🇬','🇸🇻','🇬🇶','🇪🇷','🇪🇪','🇸🇿','🇪🇹','🇫🇯','🇫🇮','🇫🇷','🇬🇦','🇬🇲','🇬🇪','🇩🇪','🇬🇭','🇬🇷','🇬🇩','🇬🇹','🇬🇳','🇬🇼','🇬🇾','🇭🇹','🇭🇳','🇭🇺','🇮🇸','🇮🇳','🇮🇩','🇮🇷','🇮🇶','🇮🇪','🇮🇱','🇮🇹','🇯🇲','🇯🇵','🇯🇴','🇰🇿','🇰🇪','🇰🇮','🇰🇼','🇰🇬','🇱🇦','🇱🇻','🇱🇧','🇱🇸','🇱🇷','🇱🇾','🇱🇮','🇱🇹','🇱🇺','🇲🇬','🇲🇼','🇲🇾','🇲🇻','🇲🇱','🇲🇹','🇲🇭','🇲🇷','🇲🇺','🇲🇽','🇫🇲','🇲🇩','🇲🇨','🇲🇳','🇲🇪','🇲🇦','🇲🇿','🇲🇲','🇳🇦','🇳🇷','🇳🇵','🇳🇱','🇳🇿','🇳🇮','🇳🇪','🇳🇬','🇰🇵','🇲🇰','🇳🇴','🇴🇲','🇵🇰','🇵🇼','🇵🇸','🇵🇦','🇵🇬','🇵🇾','🇵🇪','🇵🇭','🇵🇱','🇵🇹','🇶🇦','🇷🇴','🇷🇺','🇷🇼','🇰🇳','🇱🇨','🇻🇨','🇼🇸','🇸🇲','🇸🇹','🇸🇦','🇸🇳','🇷🇸','🇸🇨','🇸🇱','🇸🇬','🇸🇰','🇸🇮','🇸🇧','🇸🇴','🇿🇦','🇰🇷','🇸🇸','🇪🇸','🇱🇰','🇸🇩','🇸🇷','🇸🇪','🇨🇭','🇸🇾','🇹🇼','🇹🇯','🇹🇿','🇹🇭','🇹🇱','🇹🇬','🇹🇴','🇹🇹','🇹🇳','🇹🇷','🇹🇲','🇹🇻','🇺🇬','🇺🇦','🇦🇪','🇬🇧','🇺🇸','🇺🇾','🇺🇿','🇻🇺','🇻🇦','🇻🇪','🇻🇳','🇾🇪','🇿🇲','🇿🇼','🇸🇴'];
+    return { name, flag: flags[index] || '🌍' };
+});
 
 function renderCountries() {
     const container = document.getElementById('countriesList');
     if (!container) return;
     container.innerHTML = countries.map(c => `
-        <div class="bg-white/5 rounded-lg p-3 flex items-center gap-2">
+        <div class="bg-white/5 rounded-lg p-3 flex items-center gap-2 border border-white/5">
             <span class="text-xl">${c.flag}</span>
             <span class="text-gray-300 text-sm">${c.name}</span>
         </div>
@@ -524,12 +649,14 @@ function renderSomaliland() {
 // OFFICES DATA
 // ============================================================
 const offices = [
-    {name:'Xafiiska Muqdisho',city:'Muqdisho'},
-    {name:'Xafiiska Hargeysa',city:'Hargeysa'},
-    {name:'Xafiiska Berbera',city:'Berbera'},
-    {name:'Xafiiska Burco',city:'Burco'},
-    {name:'Xafiiska Borama',city:'Borama'},
-    {name:'Xafiiska Nairobi',city:'Nairobi'}
+    {name:'Xafiiska Hargeysa',city:'Hargeysa',country:'Somaliland'},
+    {name:'Xafiiska Berbera',city:'Berbera',country:'Somaliland'},
+    {name:'Xafiiska Burco',city:'Burco',country:'Somaliland'},
+    {name:'Xafiiska Borama',city:'Borama',country:'Somaliland'},
+    {name:'Xafiiska Muqdisho',city:'Muqdisho',country:'Somalia'},
+    {name:'Xafiiska Nairobi',city:'Nairobi',country:'Kenya'},
+    {name:'Safaarada Somaliland ee Taiwan',city:'Taipei',country:'Taiwan'},
+    {name:'Safaarada Somaliland ee Israel',city:'Tel Aviv',country:'Israel'}
 ];
 
 function renderOffices() {
@@ -538,7 +665,87 @@ function renderOffices() {
     container.innerHTML = offices.map(o => `
         <div class="glass p-4">
             <h4 class="text-white font-semibold">${o.name}</h4>
-            <p class="text-gray-400 text-sm">${o.city}</p>
+            <p class="text-gray-400 text-sm">${o.city} • ${o.country}</p>
+        </div>
+    `).join('');
+}
+
+const missionNetwork = [
+    { country: 'Taiwan', city: 'Taipei', office: 'Safaarada Somaliland', status: 'Active' },
+    { country: 'Israel', city: 'Tel Aviv', office: 'Safaarada Somaliland', status: 'Active' },
+    { country: 'United Arab Emirates', city: 'Abu Dhabi', office: 'Xafiiska Somaliland', status: 'Active' },
+    { country: 'United Kingdom', city: 'London', office: 'Mission Office', status: 'Monitoring' },
+    { country: 'United States', city: 'Washington DC', office: 'Liaison Office', status: 'Monitoring' },
+    { country: 'Somalia', city: 'Muqdisho', office: 'Regional Coordination', status: 'Active' }
+];
+
+function renderMissionNetwork() {
+    const container = document.getElementById('missionNetwork');
+    if (!container) return;
+    container.innerHTML = missionNetwork.map(m => `
+        <div class="border border-white/10 rounded-xl p-3 bg-white/5">
+            <div class="flex justify-between items-center mb-2">
+                <h4 class="text-white font-medium">${m.country}</h4>
+                <span class="badge ${m.status === 'Active' ? 'badge-success' : 'badge-warning'}">${m.status}</span>
+            </div>
+            <p class="text-gray-400 text-sm">${m.office}</p>
+            <p class="text-gray-400 text-xs mt-1">${m.city}</p>
+        </div>
+    `).join('');
+}
+
+const adminPresence = [
+    { name: 'Abdikarim Ali', office: 'Hargeysa HQ', role: 'Director', status: 'Joogta' },
+    { name: 'Nimco Hassan', office: 'Berbera Port', role: 'Operations', status: 'Maqan' },
+    { name: 'Mohamed Yusuf', office: 'Burco Office', role: 'Verification', status: 'Fasax' },
+    { name: 'Amina Ismail', office: 'Taiwan Mission', role: 'Protocol', status: 'Joogta' },
+    { name: 'Said Abdillahi', office: 'Israel Mission', role: 'Officer', status: 'Joogta' },
+    { name: 'Hassan Ahmed', office: 'Muqdisho Desk', role: 'Border Control', status: 'Maqan' }
+];
+
+function renderAdminPresence() {
+    const container = document.getElementById('adminPresenceTable');
+    if (!container) return;
+    const stats = { Joogta: 0, Maqan: 0, Fasax: 0 };
+    container.innerHTML = adminPresence.map(row => {
+        const statusClass = row.status === 'Joogta' ? 'badge-success' : row.status === 'Maqan' ? 'badge-danger' : 'badge-warning';
+        stats[row.status] += 1;
+        return `
+            <tr class="table-row">
+                <td class="py-3 text-white">${row.name}</td>
+                <td class="py-3 text-gray-300">${row.office}</td>
+                <td class="py-3 text-gray-300">${row.role}</td>
+                <td class="py-3"><span class="badge ${statusClass}">${row.status}</span></td>
+            </tr>
+        `;
+    }).join('');
+
+    document.getElementById('activeStaff').textContent = stats.Joogta;
+    document.getElementById('absentStaff').textContent = stats.Maqan;
+    document.getElementById('leaveStaff').textContent = stats.Fasax;
+    document.getElementById('missionCount').textContent = missionNetwork.length;
+}
+
+const officers = [
+    { name: 'Ali Mohamed', office: 'Hargeysa Airport', role: 'Immigration Officer', status: 'Joogta' },
+    { name: 'Fadumo Jama', office: 'Berbera Port', role: 'Desk Officer', status: 'Joogta' },
+    { name: 'Yasin Abdi', office: 'Burco Border', role: 'Border Control', status: 'Maqan' },
+    { name: 'Maryam Ali', office: 'Borama Office', role: 'Entry Processing', status: 'Fasax' },
+    { name: 'Ismail Aden', office: 'Erigavo Office', role: 'Verification', status: 'Joogta' },
+    { name: 'Amina Hassan', office: 'Airport Security', role: 'Identification', status: 'Joogta' }
+];
+
+function renderOfficers() {
+    const container = document.getElementById('officersList');
+    if (!container) return;
+    container.innerHTML = officers.map(o => `
+        <div class="glass p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h4 class="text-white font-semibold">${o.name}</h4>
+                <span class="badge ${o.status === 'Joogta' ? 'badge-success' : o.status === 'Maqan' ? 'badge-danger' : 'badge-warning'}">${o.status}</span>
+            </div>
+            <p class="text-gray-300 text-sm">${o.role}</p>
+            <p class="text-gray-400 text-xs mt-1">${o.office}</p>
         </div>
     `).join('');
 }
@@ -612,6 +819,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCountries();
     renderSomaliland();
     renderOffices();
+    renderMissionNetwork();
+    renderAdminPresence();
+    renderOfficers();
     setTimeout(initCharts, 100);
     loadStats();
     checkApiStatus();
