@@ -4,13 +4,28 @@ MigraSL---Somaliland-Migration-Systems - Database (SQLite local + PostgreSQL pro
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
+from pathlib import Path
+import sqlite3
 import os
+
+
+def _migrate_legacy_sqlite_database(legacy_path: Path, current_path: Path) -> None:
+    if legacy_path.is_file() and not current_path.exists():
+        with sqlite3.connect(legacy_path) as source_db:
+            with sqlite3.connect(current_path) as target_db:
+                source_db.backup(target_db)
+        print(f"✅ SQLite database waa loo raray: {current_path.name}")
+
 
 # Database URL (PostgreSQL production ama SQLite local)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    DATABASE_URL = "sqlite:///./diwaanka_ajaanibka.db"
+    legacy_db_path = Path.cwd() / "diwaanka_ajaanibka.db"
+    current_db_path = Path.cwd() / "migrasl_somaliland_migration_systems.db"
+    _migrate_legacy_sqlite_database(legacy_db_path, current_db_path)
+
+    DATABASE_URL = "sqlite:///./migrasl_somaliland_migration_systems.db"
     print("⚠️  DATABASE_URL lama helin - SQLite ayaa la isticmaalayaa")
 else:
     if DATABASE_URL.startswith("postgres://"):
