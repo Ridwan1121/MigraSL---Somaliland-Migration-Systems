@@ -1,6 +1,6 @@
 # MigraSL - Somaliland Migration Systems
 
-Nidaam loogu talagalay diiwaangelinta MigraSL - Somaliland Migration Systems, maamulka, xafiisyada, iyo ogaanshaha wejiyada ee Somaliland.
+MigraSL - Somaliland Migration Systems waa nidaam loogu talagalay diiwaangelinta dadka ajaanibta ah, maamulka socdaalka iyo xafiisyada, iyo aqoonsiga wejiyada ee Somaliland.
 
 ## Local development
 
