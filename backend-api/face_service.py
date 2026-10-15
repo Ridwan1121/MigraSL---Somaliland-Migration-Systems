@@ -13,7 +13,7 @@ try:
     DEEPFACE_AVAILABLE = True
 except ImportError:
     DEEPFACE_AVAILABLE = False
-    print("⚠️  DeepFace lama rakibin - Haar Cascade ayaa la isticmaalayaa")
+    print("DeepFace lama rakibin - Haar Cascade ayaa la isticmaalayaa")
 
 
 class FaceService:

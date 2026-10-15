@@ -7,8 +7,39 @@ import pytest
 from fastapi.testclient import TestClient
 from app import app
 from database import _migrate_legacy_sqlite_database
+from config import require_production_environment
 
 client = TestClient(app)
+
+
+def test_production_environment_requires_all_credentials():
+    with pytest.raises(RuntimeError, match="SECRET_KEY, DATABASE_URL, ADMIN_USERNAME"):
+        require_production_environment({})
+
+
+def test_production_environment_accepts_complete_configuration():
+    environment = {
+        "SECRET_KEY": "secret",
+        "DATABASE_URL": "postgresql://user:password@host/database",
+        "ADMIN_USERNAME": "Ridwan",
+        "ADMIN_PASSWORD": "strong-admin-password",
+        "OFFICER_USERNAME": "officer",
+        "OFFICER_PASSWORD": "strong-officer-password",
+    }
+    require_production_environment(environment)
+
+
+def test_production_environment_rejects_non_postgresql_database():
+    environment = {
+        "SECRET_KEY": "secret",
+        "DATABASE_URL": "sqlite:///./database.db",
+        "ADMIN_USERNAME": "Ridwan",
+        "ADMIN_PASSWORD": "strong-admin-password",
+        "OFFICER_USERNAME": "officer",
+        "OFFICER_PASSWORD": "strong-officer-password",
+    }
+    with pytest.raises(RuntimeError, match="DATABASE_URL must use PostgreSQL"):
+        require_production_environment(environment)
 
 
 def test_migrate_legacy_sqlite_database(tmp_path):

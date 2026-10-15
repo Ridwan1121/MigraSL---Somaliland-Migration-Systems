@@ -1,16 +1,16 @@
 # MigraSL - Somaliland Migration Systems
 
-Nidaam loogu talagalay diiwaangelinta ajaanibta, maamulka, xafiisyada, iyo ogaanshaha wejiyada ee Somaliland.
+Nidaam loogu talagalay diiwaangelinta MigraSL - Somaliland Migration Systems, maamulka, xafiisyada, iyo ogaanshaha wejiyada ee Somaliland.
 
 ## Local development
 
-This project targets Python 3.12. Use a Python 3.12 interpreter (for example, `python3.12`) for local development and CI. For local development and tests, install `backend-api/requirements-dev.txt` with `pip install -r backend-api/requirements-dev.txt`, then run `python app.py` from the repository root. This includes the backend runtime dependencies plus test-only packages (`httpx` and `pytest`). For deployment/runtime-only installs, use `pip install -r backend-api/requirements.txt`. Local development uses SQLite and the demo accounts `admin` / `admin123` and `officer` / `officer123`; do not use these credentials in production.
+This project targets Python 3.12. Use a Python 3.12 interpreter (for example, `python3.12`) for local development and CI. For local development and tests, install `backend-api/requirements-dev.txt` with `pip install -r backend-api/requirements-dev.txt`, then run `python app.py` from the repository root. This includes the backend runtime dependencies plus test-only packages (`httpx2` and `pytest`). For deployment/runtime-only installs, use `pip install -r backend-api/requirements.txt`. Local development uses SQLite and the demo accounts `Ridwan` / `AKIID12345` and `officer` / `officer123`; do not use these credentials in production.
 
 The backend requirements allow NumPy 2.x, letting pip select a release with a wheel for your Python version. NumPy 1.26.4 does not provide a wheel for Python 3.14, so pip may try to build it from source and require the MSVC C/C++ toolchain. Use the repository requirements rather than pinning NumPy to 1.26.4.
 
 ## Render deployment
 
-Set `APP_ENV` to `production` and configure `SECRET_KEY`, `DATABASE_URL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `OFFICER_USERNAME`, and `OFFICER_PASSWORD` as private Render environment variables. Use a long, randomly generated JWT secret and strong, unique passwords. The service intentionally refuses to start in production if its secret, login credentials, or database URL are missing. `DATABASE_URL` must be a valid PostgreSQL URL without a Python-version prefix.
+The included `render.yaml` sets `APP_ENV=production`. In the Render dashboard, configure `SECRET_KEY`, `DATABASE_URL`, `ADMIN_PASSWORD`, and `OFFICER_PASSWORD` as private environment variables; `ADMIN_USERNAME` and `OFFICER_USERNAME` are set to `Ridwan` and `officer` by `render.yaml` and can be overridden in the dashboard. Use a long, randomly generated JWT secret and strong, unique passwords. The service refuses to start in production if any required value is missing or blank, and production login accounts are built from these environment variables rather than the local demo credentials. The administrator and officer usernames must differ. `DATABASE_URL` must be a valid PostgreSQL URL.
 
 ## Database rename
 

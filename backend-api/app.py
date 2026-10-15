@@ -17,6 +17,7 @@ import base64
 import json
 import os
 
+from config import APP_ENV, SECRET_KEY
 from database import init_db, get_db, ImmigrantDB, OfficerDB, AdminDB, UserDB, ScanHistoryDB
 
 try:
@@ -38,37 +39,46 @@ except ImportError:
 # ============================================================
 # CONFIGURATION
 # ============================================================
-SECRET_KEY = os.getenv("SECRET_KEY", "migrasl-secret-key-2026-very-secure")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-APP_ENV = os.getenv("APP_ENV", "development")
-
 
 # ============================================================
 # USERS_DB
 # ============================================================
-USERS_DB = {
-    "Ridwan": {
-        "username": "Ridwan",
-        "full_name": "Ridwan Farah",
-        "email": "ridwan@migrasl.so",
-        "hashed_password": pwd_context.hash("AKIID12345"),
-        "role": "admin",
-        "disabled": False
-    },
-    "officer": {
-        "username": "officer",
-        "full_name": "Xasan Cali",
-        "email": "officer@migrasl.so",
-        "hashed_password": pwd_context.hash("officer123"),
-        "role": "officer",
-        "disabled": False
+def _build_user(username: str, password: str, full_name: str, role: str) -> dict:
+    return {
+        "username": username,
+        "full_name": full_name,
+        "email": f"{username}@migrasl.so",
+        "hashed_password": pwd_context.hash(password),
+        "role": role,
+        "disabled": False,
     }
-}
+
+
+if APP_ENV.lower() == "production":
+    admin_username = os.environ["ADMIN_USERNAME"]
+    officer_username = os.environ["OFFICER_USERNAME"]
+    if admin_username == officer_username:
+        raise RuntimeError("ADMIN_USERNAME and OFFICER_USERNAME must be different.")
+
+    USERS_DB = {
+        admin_username: _build_user(
+            admin_username, os.environ["ADMIN_PASSWORD"], "MigraSL Administrator", "admin"
+        ),
+        officer_username: _build_user(
+            officer_username, os.environ["OFFICER_PASSWORD"], "MigraSL Officer", "officer"
+        ),
+    }
+else:
+    USERS_DB = {
+        "Ridwan": _build_user("Ridwan", "AKIID12345", "Ridwan Farah", "admin"),
+        "officer": _build_user("officer", "officer123", "Xasan Cali", "officer"),
+    }
 
 
 # ============================================================
