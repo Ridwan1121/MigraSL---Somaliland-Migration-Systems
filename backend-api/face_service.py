@@ -1,5 +1,5 @@
 ﻿"""
-Diwaanka Ajaanibka - Face Recognition Service
+MigraSL---Somaliland-Migration-Systems - Face Recognition Service
 """
 import os
 import json

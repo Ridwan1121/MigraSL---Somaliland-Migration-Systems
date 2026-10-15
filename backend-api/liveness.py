@@ -1,5 +1,5 @@
 ﻿"""
-Diwaanka Ajaanibka - Liveness Detection
+MigraSL---Somaliland-Migration-Systems - Liveness Detection
 """
 import cv2
 import numpy as np
