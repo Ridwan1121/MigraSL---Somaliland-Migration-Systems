@@ -56,8 +56,9 @@
     </div>
 </div>
 
+<script src="api-config.js"></script>
 <script>
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = window.MIGRASL_API_URL;
 
 async function handleLogin(event) {
     event.preventDefault();

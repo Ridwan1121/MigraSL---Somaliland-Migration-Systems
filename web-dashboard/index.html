@@ -370,13 +370,29 @@
     </main>
 </div>
 
+<script src="api-config.js"></script>
 <script>
 // ============================================================
 // MIGRASL - API CONFIGURATION
 // ============================================================
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = window.MIGRASL_API_URL;
 const authToken = localStorage.getItem('access_token');
-const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+let currentUser = {};
+try {
+    currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+} catch (error) {
+    console.warn('Stored user information is invalid:', error);
+}
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[character]);
+}
 
 // ============================================================
 // AUTHENTICATION
@@ -457,12 +473,12 @@ async function loadImmigrants() {
                 table.innerHTML = data.immigrants.map(i => `
                     <tr class="table-row">
                         <td class="py-3 text-gray-400">${i.id}</td>
-                        <td class="py-3 text-white">${i.name}</td>
-                        <td class="py-3 text-gray-300">${i.country}</td>
-                        <td class="py-3 text-gray-300">${i.region}</td>
-                        <td class="py-3 text-gray-300">${i.entry_point}</td>
-                        <td class="py-3 text-gray-300">${i.district}</td>
-                        <td class="py-3"><span class="badge badge-success">${i.status}</span></td>
+                        <td class="py-3 text-white">${escapeHtml(i.name)}</td>
+                        <td class="py-3 text-gray-300">${escapeHtml(i.country)}</td>
+                        <td class="py-3 text-gray-300">${escapeHtml(i.region)}</td>
+                        <td class="py-3 text-gray-300">${escapeHtml(i.entry_point)}</td>
+                        <td class="py-3 text-gray-300">${escapeHtml(i.district)}</td>
+                        <td class="py-3"><span class="badge badge-success">${escapeHtml(i.status)}</span></td>
                     </tr>
                 `).join('');
             } else {
