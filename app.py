@@ -1,4 +1,4 @@
-﻿"""Root entry point that re-exports the backend API app."""
+"""Root entry point that re-exports the backend API app."""
 
 from __future__ import annotations
 
