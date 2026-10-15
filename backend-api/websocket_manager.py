@@ -1,4 +1,4 @@
-﻿"""
+"""
 MigraSL - Somaliland Migration - WebSocket Manager
 """
 from fastapi import WebSocket
