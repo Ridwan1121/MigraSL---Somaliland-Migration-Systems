@@ -1,5 +1,5 @@
 ﻿"""
-MigraSL - Somaliland Migration - Database (SQLite local + PostgreSQL production)
+Diwaanka Ajaanibka - Database (SQLite local + PostgreSQL production)
 """
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean, Text
 from sqlalchemy.orm import declarative_base, sessionmaker

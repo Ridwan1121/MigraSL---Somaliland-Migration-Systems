@@ -1,5 +1,5 @@
 """
-MigraSL - Somaliland Migration - WebSocket Manager
+Diwaanka Ajaanibka - WebSocket Manager
 """
 from fastapi import WebSocket
 from typing import List
