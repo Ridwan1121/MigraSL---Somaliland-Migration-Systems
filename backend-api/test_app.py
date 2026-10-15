@@ -1,11 +1,29 @@
 ﻿"""
 MigraSL---Somaliland-Migration-Systems - Unit Tests
 """
+import sqlite3
+
 import pytest
 from fastapi.testclient import TestClient
 from app import app
+from database import _migrate_legacy_sqlite_database
 
 client = TestClient(app)
+
+
+def test_migrate_legacy_sqlite_database(tmp_path):
+    legacy_path = tmp_path / "diwaanka_ajaanibka.db"
+    current_path = tmp_path / "migrasl_somaliland_migration_systems.db"
+    with sqlite3.connect(legacy_path) as legacy_db:
+        legacy_db.execute("CREATE TABLE migration_check (value TEXT)")
+        legacy_db.execute("INSERT INTO migration_check VALUES ('preserved')")
+
+    _migrate_legacy_sqlite_database(legacy_path, current_path)
+
+    with sqlite3.connect(current_path) as current_db:
+        row = current_db.execute("SELECT value FROM migration_check").fetchone()
+    assert row == ("preserved",)
+    assert legacy_path.exists()
 
 
 def test_home():
