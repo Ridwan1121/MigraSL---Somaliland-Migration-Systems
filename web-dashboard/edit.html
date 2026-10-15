@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit/Delete Ajaanibta</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" />
     <style>
         body { background: #0a0e1a; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; color: #fff; }
         .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; }
@@ -98,12 +98,12 @@
         <form id="editForm" onsubmit="handleEditSubmit(event)">
             <input type="hidden" id="editId" />
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label class="block text-gray-400 text-sm mb-2">Magaca *</label><input type="text" id="editName" class="input-field" required /></div>
-                <div><label class="block text-gray-400 text-sm mb-2">Dalka *</label><input type="text" id="editCountry" class="input-field" required /></div>
-                <div><label class="block text-gray-400 text-sm mb-2">Gobolka *</label><input type="text" id="editRegion" class="input-field" required /></div>
-                <div><label class="block text-gray-400 text-sm mb-2">Xudduudda *</label><input type="text" id="editEntryPoint" class="input-field" required /></div>
-                <div><label class="block text-gray-400 text-sm mb-2">Degmada *</label><input type="text" id="editDistrict" class="input-field" required /></div>
-                <div><label class="block text-gray-400 text-sm mb-2">Baasaboorka</label><input type="text" id="editPassport" class="input-field" /></div>
+                <div><label for="editName" class="block text-gray-400 text-sm mb-2">Magaca *</label><input type="text" id="editName" class="input-field" required /></div>
+                <div><label for="editCountry" class="block text-gray-400 text-sm mb-2">Dalka *</label><input type="text" id="editCountry" class="input-field" required /></div>
+                <div><label for="editRegion" class="block text-gray-400 text-sm mb-2">Gobolka *</label><input type="text" id="editRegion" class="input-field" required /></div>
+                <div><label for="editEntryPoint" class="block text-gray-400 text-sm mb-2">Xudduudda *</label><input type="text" id="editEntryPoint" class="input-field" required /></div>
+                <div><label for="editDistrict" class="block text-gray-400 text-sm mb-2">Degmada *</label><input type="text" id="editDistrict" class="input-field" required /></div>
+                <div><label for="editPassport" class="block text-gray-400 text-sm mb-2">Baasaboorka</label><input type="text" id="editPassport" class="input-field" /></div>
             </div>
             <div class="mt-6 flex gap-3">
                 <button type="submit" class="btn-primary flex-1"><i class="fas fa-save mr-2"></i> Cusbooneysii</button>
