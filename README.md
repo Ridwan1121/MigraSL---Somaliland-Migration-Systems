@@ -12,6 +12,8 @@ The backend requirements allow NumPy 2.x, letting pip select a release with a wh
 
 The included `render.yaml` sets `APP_ENV=production`. In the Render dashboard, configure `SECRET_KEY`, `DATABASE_URL`, `ADMIN_PASSWORD`, and `OFFICER_PASSWORD` as private environment variables; `ADMIN_USERNAME` and `OFFICER_USERNAME` are set to `Ridwan` and `officer` by `render.yaml` and can be overridden in the dashboard. Use a long, randomly generated JWT secret and strong, unique passwords. The service refuses to start in production if any required value is missing or blank, and production login accounts are built from these environment variables rather than the local demo credentials. The administrator and officer usernames must differ. `DATABASE_URL` must be a valid PostgreSQL URL.
 
+The current Render service name in `render.yaml` is still `diwaanka-ajaanibka`; this deployment name is separate from the MigraSL branding shown in the application.
+
 ## Database rename
 
 The local SQLite database now uses `migrasl_somaliland_migration_systems.db`. On startup, if that file does not exist but `diwaanka_ajaanibka.db` does, the backend copies the existing SQLite database to the new filename without deleting the original.
