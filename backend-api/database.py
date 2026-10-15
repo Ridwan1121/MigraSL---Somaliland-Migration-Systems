@@ -14,7 +14,7 @@ def _migrate_legacy_sqlite_database(legacy_path: Path, current_path: Path) -> No
         with sqlite3.connect(legacy_path) as source_db:
             with sqlite3.connect(current_path) as target_db:
                 source_db.backup(target_db)
-        print(f"✅ SQLite database waa loo raray: {current_path.name}")
+        print(f"SQLite database waa loo raray: {current_path.name}")
 
 
 # Database URL (PostgreSQL production ama SQLite local)
@@ -26,11 +26,11 @@ if not DATABASE_URL:
     _migrate_legacy_sqlite_database(legacy_db_path, current_db_path)
 
     DATABASE_URL = "sqlite:///./migrasl_somaliland_migration_systems.db"
-    print("⚠️  DATABASE_URL lama helin - SQLite ayaa la isticmaalayaa")
+    print("DATABASE_URL lama helin - SQLite ayaa la isticmaalayaa")
 else:
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-    print(f"✅ DATABASE_URL waa la helay: {DATABASE_URL[:30]}...")
+    print("DATABASE_URL waa la helay")
 
 # SQLite wuxuu u baahan yahay connect_args
 if DATABASE_URL.startswith("sqlite"):
