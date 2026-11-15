@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend-api/requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --only-binary=:all: -r requirements.txt
 
 RUN useradd --create-home --uid 10001 appuser
 COPY --chown=appuser:appuser backend-api/ .
