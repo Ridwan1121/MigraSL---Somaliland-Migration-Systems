@@ -36,3 +36,5 @@ uploads/
 .env
 .env.*
 !.env.example
+
+backend-api/database.json
