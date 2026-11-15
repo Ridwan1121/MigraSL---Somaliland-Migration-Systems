@@ -1,22 +1,38 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 venv/
 .venv/
 env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.log
 
-# VS Code
+# Editors / OS
 .vs/
 .vscode/
+.idea/
+Thumbs.db
+.DS_Store
 
-# Database
+# Databases and backups (personal / biometric data - never commit)
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
 *.sqlite
+*.sqlite3
+*.sql
+*.dump
+backups/
+_backup_before_fix/
+
+# Uploaded images / face data
+uploads/
 
 # Environment
 .env
-
-# OS
-Thumbs.db
-.DS_Store
+.env.*
+!.env.example

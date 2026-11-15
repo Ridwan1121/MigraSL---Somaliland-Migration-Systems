@@ -1,28 +1,35 @@
-﻿version: '3.8'
-
+# Local development stack. Copy .env.example to .env and fill in the values first.
 services:
   backend:
     build: .
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/migrasl_somaliland_migration_systems
-      - SECRET_KEY=diwaanka-ajaanibka-secret-key-2026
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-migrasl_somaliland_migration_systems}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./backend-api:/app
+    restart: unless-stopped
 
   db:
     image: postgres:15
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=migrasl_somaliland_migration_systems
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-migrasl_somaliland_migration_systems}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
 volumes:
   postgres_data:
