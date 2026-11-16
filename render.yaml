@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: diwaanka-ajaanibka
+    name: migrasl-somaliland-migration-systems
     runtime: python
     region: frankfurt
     plan: free
