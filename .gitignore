@@ -38,3 +38,5 @@ uploads/
 !.env.example
 
 backend-api/database.json
+
+node_modules/
