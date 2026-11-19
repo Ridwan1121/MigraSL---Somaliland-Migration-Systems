@@ -1,4 +1,4 @@
-﻿"""
+"""
 MigraSL - Somaliland Migration Systems Backend API
 """
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, status, WebSocket, WebSocketDisconnect
@@ -19,6 +19,9 @@ import os
 
 from config import APP_ENV, SECRET_KEY
 from database import init_db, get_db, ImmigrantDB, OfficerDB, AdminDB, UserDB, ScanHistoryDB
+import staff
+import offices
+import extras
 
 try:
     from face_service import face_service
@@ -60,25 +63,7 @@ def _build_user(username: str, password: str, full_name: str, role: str) -> dict
     }
 
 
-if APP_ENV.lower() == "production":
-    admin_username = os.environ["ADMIN_USERNAME"]
-    officer_username = os.environ["OFFICER_USERNAME"]
-    if admin_username == officer_username:
-        raise RuntimeError("ADMIN_USERNAME and OFFICER_USERNAME must be different.")
-
-    USERS_DB = {
-        admin_username: _build_user(
-            admin_username, os.environ["ADMIN_PASSWORD"], "MigraSL Administrator", "admin"
-        ),
-        officer_username: _build_user(
-            officer_username, os.environ["OFFICER_PASSWORD"], "MigraSL Officer", "officer"
-        ),
-    }
-else:
-    USERS_DB = {
-        "Ridwan": _build_user("Ridwan", "AKIID12345", "Ridwan Farah", "admin"),
-        "officer": _build_user("officer", "officer123", "Xasan Cali", "officer"),
-    }
+USERS_DB = {}  # login-ku wuxuu isticmaalaa table-ka staff
 
 
 # ============================================================
@@ -107,7 +92,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Token-ka waa khaldan ama wuu dhamaaday",
@@ -120,6 +105,16 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             raise credentials_exception
     except JWTError:
         raise credentials_exception
+    s = db.query(staff.StaffDB).filter(staff.StaffDB.username == username).first()
+    if s:
+        if not s.is_active:
+            raise credentials_exception
+        if s.role == "officer" and s.access_expires_at and s.access_expires_at < datetime.utcnow():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Muddada gelitaankaaga waa dhammaatay",
+            )
+        return staff.staff_to_dict(s)
     user = USERS_DB.get(username)
     if user is None:
         raise credentials_exception
@@ -177,6 +172,11 @@ class Admin(BaseModel):
 # ============================================================
 # ENDPOINTS
 # ============================================================
+app.include_router(staff.build_router(get_current_user))
+app.include_router(offices.build_router(get_current_user))
+app.include_router(extras.build_router(get_current_user))
+
+
 @app.get("/")
 def home():
     return {
@@ -203,8 +203,9 @@ def health_check():
 
 
 @app.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(form_data.username, form_data.password)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = staff.authenticate_staff(db, form_data.username, form_data.password) \
+        or authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -222,7 +223,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         "user": {
             "username": user["username"],
             "full_name": user["full_name"],
-            "role": user["role"]
+            "role": user["role"],
+            "office": user.get("office"),
+            "access_expires_at": user.get("access_expires_at")
         }
     }
 
@@ -232,8 +235,10 @@ async def read_users_me(current_user: dict = Depends(get_current_user)):
     return {
         "username": current_user["username"],
         "full_name": current_user["full_name"],
-        "email": current_user["email"],
-        "role": current_user["role"]
+        "email": current_user.get("email"),
+        "role": current_user["role"],
+        "office": current_user.get("office"),
+        "access_expires_at": current_user.get("access_expires_at")
     }
 
 
@@ -241,7 +246,7 @@ async def read_users_me(current_user: dict = Depends(get_current_user)):
 # FACE RECOGNITION
 # ============================================================
 @app.post("/scan-face/")
-async def scan_face(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+async def scan_face(file: UploadFile = File(...), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         if not file.content_type.startswith("image/"):
             raise HTTPException(status_code=400, detail="Fadlan soo gudbi sawir sax ah")
@@ -261,11 +266,44 @@ async def scan_face(file: UploadFile = File(...), current_user: dict = Depends(g
                 "face_number": i + 1,
                 "position": {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
             })
+        matched_immigrant = None
+        matched_photos = []
+        if face_service:
+            enc = face_service.get_encoding(img)
+            if enc:
+                known = []
+                for imp in db.query(ImmigrantDB).filter(ImmigrantDB.face_encoding.isnot(None)).all():
+                    try:
+                        vec = json.loads(imp.face_encoding)
+                        if isinstance(vec, list) and len(vec) > 0:
+                            known.append({"id": imp.id, "encoding": vec})
+                    except Exception:
+                        continue
+                hit = face_service.identify_face(enc, known) if known and hasattr(face_service, "identify_face") else None
+                if hit and hit.get("id"):
+                    imp = db.query(ImmigrantDB).filter(ImmigrantDB.id == hit["id"]).first()
+                    if imp:
+                        photos = db.query(extras.PhotoDB).filter(extras.PhotoDB.immigrant_id == imp.id).order_by(extras.PhotoDB.id.desc()).all()
+                        matched_photos = [{"id": p.id, "url": f"/photos/file/{p.id}"} for p in photos]
+                        matched_immigrant = {
+                            "id": imp.id,
+                            "name": getattr(imp, "name", None),
+                            "passport_number": getattr(imp, "passport_number", None),
+                            "nationality": getattr(imp, "nationality", None),
+                            "city": getattr(imp, "city", None),
+                            "office": getattr(imp, "office", None),
+                            "status": getattr(imp, "status", None),
+                            "confidence": hit.get("confidence"),
+                            "photos": matched_photos,
+                        }
         return {
             "status": "success",
             "detected_faces": len(faces),
             "faces": faces_data,
-            "message": f"Waxaa la helay {len(faces)} weji"
+            "matched": bool(matched_immigrant),
+            "immigrant": matched_immigrant,
+            "photos": matched_photos,
+            "message": f"Waxaa la helay {len(faces)} weji" + (f" ? Waa la aqoonsaday: {matched_immigrant['name']}" if matched_immigrant else "")
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Qalad dhacay: {str(e)}")
@@ -366,6 +404,8 @@ def update_immigrant(immigrant_id: int, immigrant: Immigrant, db: Session = Depe
 
 @app.delete("/immigrants/{immigrant_id}")
 def delete_immigrant(immigrant_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") not in ("superadmin", "admin"):
+        raise HTTPException(status_code=403, detail="Officer ma tirtiri karo ajaanib")
     db_immigrant = db.query(ImmigrantDB).filter(ImmigrantDB.id == immigrant_id).first()
     if not db_immigrant:
         raise HTTPException(status_code=404, detail="Ajaanib lama helin")
@@ -391,7 +431,7 @@ def get_stats(db: Session = Depends(get_db), current_user: dict = Depends(get_cu
             "total_admins": total_admins,
             "total_scans": total_scans,
             "total_countries": 197,
-            "total_offices": 45
+            "total_offices": db.query(offices.OfficeDB).count()
         }
     }
 
@@ -410,6 +450,9 @@ async def websocket_endpoint(websocket: WebSocket):
         except WebSocketDisconnect:
             manager.disconnect(websocket)
 
+
+from docs_theme import install_docs
+install_docs(app)
 
 if __name__ == "__main__":
     import uvicorn
