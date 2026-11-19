@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="so">
 <head>
     <meta charset="UTF-8" />
@@ -123,6 +123,65 @@
         <!-- PAGE: DASHBOARD -->
         <div id="page-dashboard" class="page-content active">
             <div class="notice mb-6 only-guest"><i class="fas fa-info-circle mr-2"></i>Waxaad daawanaysaa dashboard-ka guud. Riix <b>Gal (Login)</b> si aad u aragto liiska ajaanibta, askarta iyo weji-aqoonsiga.</div>
+<!-- MIGRASL-GUEST-START: calanka Somaliland + goobaha (waxaa la arkaa kahor login-ka) -->
+            <style>
+                #mig-guest { margin-bottom: 32px; }
+                #mig-guest .mgl-hero { padding: 26px 20px; text-align: center; margin-bottom: 20px; }
+                #mig-guest .mgl-hero h3 { font-size: 1.7rem; font-weight: 700; color: #fff; }
+                #mig-guest .mgl-hero p { color: #94a3b8; }
+                #mig-guest .mgl-flag { width: 100%; max-width: 420px; margin: 18px auto 12px; border: 1px solid rgba(255,255,255,.2); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.45); transform-origin: left center; animation: mglWave 5s ease-in-out infinite; }
+                @keyframes mglWave { 0%,100% { transform: perspective(600px) rotateY(0); } 50% { transform: perspective(600px) rotateY(-4deg); } }
+                @media (prefers-reduced-motion: reduce) { #mig-guest .mgl-flag { animation: none; } }
+                #mig-guest .mgl-flag svg { display: block; width: 100%; height: auto; }
+                #mig-guest .mgl-cap { font-size: .95rem; color: #cbd5e1; }
+                #mig-guest .mgl-title { font-size: 1.25rem; font-weight: 600; color: #fff; margin-bottom: 14px; padding-left: 12px; border-left: 5px solid #16a34a; }
+                #mig-guest .mgl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+                #mig-guest .mgl-place { overflow: hidden; transition: transform .2s; }
+                #mig-guest .mgl-place:hover { transform: translateY(-4px); }
+                #mig-guest .mgl-img { height: 150px; background: linear-gradient(135deg, #006d21, #0284c7); }
+                #mig-guest .mgl-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+                #mig-guest .mgl-body { padding: 16px; }
+                #mig-guest .mgl-badge { display: inline-block; background: rgba(22,163,74,.18); color: #4ade80; font-size: .75rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; }
+                #mig-guest .mgl-body h4 { font-size: 1.05rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+                #mig-guest .mgl-body p { font-size: .88rem; color: #94a3b8; line-height: 1.5; }
+            </style>
+            <section id="mig-guest" class="only-guest" aria-label="Somaliland">
+                <div class="glass mgl-hero">
+                    <h3>Jamhuuriyadda Somaliland</h3>
+                    <p>Calanka Qaranka, Goobaha Taariikhiga ah, iyo Magaalooyinka ay ku yaallaan</p>
+                    <div class="mgl-flag" role="img" aria-label="Calanka Somaliland">
+                        <svg viewBox="0 0 420 220" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="420" height="73.4" fill="#006d21"/>
+                            <rect y="73.3" width="420" height="73.4" fill="#ffffff"/>
+                            <rect y="146.6" width="420" height="73.4" fill="#d21034"/>
+                            <text x="210" y="46" text-anchor="middle" fill="#fff" font-size="22" font-family="'Segoe UI',Tahoma,serif">لَا إِلٰهَ إِلَّا الله مُحَمَّدٌ رَسُولُ الله</text>
+                            <polygon fill="#000" points="210,88 218.2,111.6 243.2,112 223.3,127.1 230.5,151 210,136.8 189.5,151 196.7,127.1 176.8,112 201.8,111.6"/>
+                        </svg>
+                    </div>
+                    <p class="mgl-cap"><strong>Xarunta Dhexe:</strong> Caasimadda Hargeysa &mdash; Gobolka Maroodi Jeex</p>
+                </div>
+                <h3 class="mgl-title">Goobaha Taariikhiga ah iyo Magaalooyinka</h3>
+                <div class="mgl-grid" id="mgl-places"></div>
+            </section>
+            <script>
+            (function () {
+                // Wax ku beddel/ku dar halkan. `img` haddii uu fashilmo, midab gradient ah ayaa muuqda.
+                var PLACES = [
+                    { city: 'Hargeysa (Maroodi Jeex)', name: 'Laas Geel', text: 'Godad qadiimi ah oo ku yaalla duleedka Hargeysa, kuna caan ah farshaxanka dhagaxa ee kumanaan sano jirka ah.', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Las_Geel_02.jpg/640px-Las_Geel_02.jpg' },
+                    { city: 'Berbera (Saaxil)', name: 'Dekedda & Dhismayaasha Qadiimiga ah', text: 'Magaalo xeebeed taariikhi ah oo leh dhismayaal qadiimi ah iyo deked soo jirtay qarniyo badan.', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Berbera_port_and_town.jpg/640px-Berbera_port_and_town.jpg' },
+                    { city: 'Hargeysa (Maroodi Jeex)', name: 'Taallada Diyaaradda & Bartamaha Hargeysa', text: 'Caasimadda Somaliland iyo xarunta dhaqanka, taariikhda halganka, iyo maamulka qaranka.', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Hargeisa_city_view.jpg/640px-Hargeisa_city_view.jpg' },
+                    { city: 'Taleex (Sool)', name: 'Qalcadda Taleex', text: 'Dhisme taariikhi ah oo dhagax laga dhisay bilowgii qarnigii 20-aad, kuna yaalla gobolka Sool.', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Taleh_fortress.jpg/640px-Taleh_fortress.jpg' }
+                ];
+                function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+                var grid = document.getElementById('mgl-places');
+                grid.innerHTML = PLACES.map(function (p) {
+                    return '<article class="glass mgl-place"><div class="mgl-img"><img loading="lazy" src="' + esc(p.img) +
+                        '" alt="' + esc(p.name) + '" onerror="this.remove()"></div><div class="mgl-body"><span class="mgl-badge">' +
+                        esc(p.city) + '</span><h4>' + esc(p.name) + '</h4><p>' + esc(p.text) + '</p></div></article>';
+                }).join('');
+            })();
+            </script>
+            <!-- MIGRASL-GUEST-END -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <div class="stat-card">
                     <div class="flex items-center justify-between">
@@ -1084,5 +1143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 MigraSL Dashboard waa diyaar!');
 });
 </script>
+  <script src="i18n.js"></script>
 </body>
 </html>
+

@@ -125,6 +125,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 # APP
 # ============================================================
 app = FastAPI(
+    docs_url=None,
     title="MigraSL API",
     description="API-ga weji-aqoonsiga ee hay'adda socdaalka Somaliland",
     version="2.0.0"
