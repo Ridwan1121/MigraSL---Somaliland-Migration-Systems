@@ -1144,6 +1144,45 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
   <script src="i18n.js"></script>
+<script id="migraslPreLoginBannerGuard">
+(function () {
+  function hasAuthToken() {
+    try {
+      var keys = ["access_token", "token", "migrasl_token", "auth_token", "jwt"];
+      for (var i = 0; i < keys.length; i++) {
+        var v = localStorage.getItem(keys[i]) || sessionStorage.getItem(keys[i]);
+        if (v && v !== "null" && v !== "undefined" && v.trim() !== "") return true;
+      }
+      for (var j = 0; j < localStorage.length; j++) {
+        var k = localStorage.key(j) || "";
+        if (/token|auth|user/i.test(k)) {
+          var val = localStorage.getItem(k);
+          if (val && val !== "null" && val !== "undefined" && val.length > 10) return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function syncPreLoginBanner() {
+    var loggedIn = hasAuthToken();
+    var banners = document.querySelectorAll("#somalilandNationalBanner, [data-pre-login-banner]");
+    for (var i = 0; i < banners.length; i++) {
+      banners[i].style.display = loggedIn ? "none" : "";
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", syncPreLoginBanner);
+  } else {
+    syncPreLoginBanner();
+  }
+
+  window.addEventListener("storage", syncPreLoginBanner);
+  setInterval(syncPreLoginBanner, 800);
+})();
+</script>
 </body>
 </html>
+
 

@@ -6,10 +6,37 @@ import sqlite3
 import pytest
 from fastapi.testclient import TestClient
 from app import app
-from database import _migrate_legacy_sqlite_database
 from config import require_production_environment
+from database import _migrate_legacy_sqlite_database, get_db, init_db
+from staff import StaffDB, pwd_context
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def ensure_test_user():
+    init_db()
+    db = next(get_db())
+    try:
+        user = db.query(StaffDB).filter(StaffDB.username == "Ridwan").first()
+        if not user:
+            db.add(
+                StaffDB(
+                    username="Ridwan",
+                    full_name="Ridwan Farah",
+                    password_hash=pwd_context.hash("AKIID12345"),
+                    role="superadmin",
+                    is_active=True,
+                )
+            )
+            db.commit()
+        elif not user.is_active or not pwd_context.verify("AKIID12345", user.password_hash):
+            user.password_hash = pwd_context.hash("AKIID12345")
+            user.is_active = True
+            db.commit()
+    finally:
+        db.close()
+    yield
 
 
 def test_production_environment_requires_all_credentials():

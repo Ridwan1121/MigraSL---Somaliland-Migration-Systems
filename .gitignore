@@ -1,44 +1,42 @@
-# Python
-__pycache__/
-*.py[cod]
-venv/
-.venv/
-env/
-*.egg-info/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-*.log
-
-# Editors / OS
-.vs/
-.vscode/
-.idea/
-Thumbs.db
-.DS_Store
-
-# Databases and backups (personal / biometric data - never commit)
-*.db
-*.db-journal
-*.db-wal
-*.db-shm
-*.sqlite
-*.sqlite3
-*.sql
-*.dump
-backups/
-_backup_before_fix/
-
-# Uploaded images / face data
-uploads/
-
-# Environment
+﻿# Secrets & Environment
 .env
 .env.*
 !.env.example
 
-backend-api/database.json
+# Python & Virtual Environments
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
 
+# Node & Frontend Build
 node_modules/
+npm-debug.log*
 
-backend-api/uploads/
+# Databases & Local Uploads
+*.db
+*.sqlite
+*.sqlite3
+backend-api/uploads/*
+!backend-api/uploads/.gitkeep
+
+# Backups, Temporary & Generated Tree Files
+_backup_before_fix/
+*.bak
+*.bak_*
+*.tmp
+migrasl-tree.txt
+migrasl-folder-tree.txt
+somaliland-preview.html
+
+# IDE & OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
