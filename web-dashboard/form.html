@@ -89,12 +89,33 @@
                         <i class="fas fa-redo mr-2"></i> Nadiifi
                     </button>
                 </div>
-            </form>
+            
+<div id="migraslPhotoUploadBox" class="mt-4 p-4 rounded-xl bg-gray-900/70 border border-gray-700 space-y-3">
+  <div class="flex items-center justify-between">
+    <label for="migraslPhotoInput" class="text-sm font-semibold text-gray-200">Sawirka Ajaanibka (/photos/{id})</label>
+    <span id="migraslPhotoStatus" class="text-xs text-emerald-400"></span>
+  </div>
+  <input type="file" id="migraslPhotoInput" accept="image/*" onchange="migraslPreviewPhoto(this)" class="block w-full text-xs text-gray-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-500" />
+  <img id="migraslPhotoPreview" alt="Photo Preview" class="hidden w-32 h-32 object-cover rounded-lg border border-gray-600" />
+</div>
+
+</form>
         </div>
     </main>
 </div>
 
-<script src="api-config.js"></script>
+<script src="api-config.js">
+async function migraslAttachPhotoAfterSave(responseData, fallbackId) {
+  const qId = new URLSearchParams(window.location.search).get("id");
+  const targetId = (responseData && (responseData.id || (responseData.immigrant && responseData.immigrant.id))) || fallbackId || qId;
+  const apiUrl = (typeof API_URL !== "undefined" && API_URL) || window.MIGRASL_API_URL || localStorage.getItem("migrasl_api_url") || "http://127.0.0.1:8000";
+  const token = (typeof token !== "undefined" && token) || localStorage.getItem("access_token") || "";
+  if (targetId && typeof migraslUploadImmigrantPhoto === "function") {
+    await migraslUploadImmigrantPhoto(targetId, apiUrl, token);
+  }
+}
+
+</script>
 <script>
     const API_URL = window.MIGRASL_API_URL;
     const token = localStorage.getItem('access_token');
@@ -147,5 +168,47 @@
         document.getElementById('immigrantForm').reset();
     }
 </script>
+
+<script>
+function migraslPreviewPhoto(input) {
+  const img = document.getElementById("migraslPhotoPreview");
+  if (!img) return;
+  const file = input && input.files && input.files[0];
+  if (!file) { img.classList.add("hidden"); img.removeAttribute("src"); return; }
+  img.src = URL.createObjectURL(file);
+  img.classList.remove("hidden");
+}
+async function migraslUploadImmigrantPhoto(immigrantId, apiUrl, token) {
+  const input = document.getElementById("migraslPhotoInput");
+  const statusEl = document.getElementById("migraslPhotoStatus");
+  const file = input && input.files && input.files[0];
+  if (!file || !immigrantId) return null;
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch(`${apiUrl}/photos/${immigrantId}`, {
+    method: "POST",
+    headers: token ? { "Authorization": `Bearer ${token}` } : {},
+    body: fd
+  });
+  const data = await res.json().catch(() => ({}));
+  if (statusEl) {
+    statusEl.textContent = res.ok ? "Sawirka waa la upload gareeyay!" : (data.detail || `HTTP ${res.status}`);
+  }
+  return res.ok ? data : null;
+}
+</script>
+
+
+<script>
+async function migraslSubmitWithPhoto(savedData, fallbackId) {
+  const qId = new URLSearchParams(window.location.search).get("id");
+  const targetId = (savedData && (savedData.id || (savedData.immigrant && savedData.immigrant.id))) || fallbackId || qId;
+  const apiUrl = (typeof API_URL !== "undefined" && API_URL) || window.API_URL || localStorage.getItem("migrasl_api_url") || "http://127.0.0.1:8000";
+  const token = (typeof authToken !== "undefined" && authToken) || window.authToken || localStorage.getItem("migrasl_token") || localStorage.getItem("access_token") || "";
+  if (!targetId || typeof migraslUploadImmigrantPhoto !== "function") return null;
+  return await migraslUploadImmigrantPhoto(targetId, apiUrl, token);
+}
+</script>
+
 </body>
 </html>

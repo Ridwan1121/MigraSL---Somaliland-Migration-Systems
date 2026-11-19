@@ -58,6 +58,11 @@
             border-radius: 18px;
             padding: 22px 24px;
         }
+        .sidebar-link .lock { margin-left: auto; font-size: 11px; opacity: .6; display: none; }
+        body.guest .sidebar-link.protected .lock { display: inline; }
+        body.guest .only-auth { display: none !important; }
+        body:not(.guest) .only-guest { display: none !important; }
+        .notice { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); color: #93c5fd; border-radius: 12px; padding: 12px 16px; font-size: 14px; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
         ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius: 10px; }
@@ -80,15 +85,16 @@
         </div>
         <nav class="p-4 space-y-1">
             <button type="button" class="sidebar-link active" data-page="dashboard" onclick="showPage('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button>
-            <button type="button" class="sidebar-link" data-page="admin" onclick="showPage('admin')"><i class="fas fa-user-shield"></i> Maamulka Sare</button>
-            <button type="button" class="sidebar-link" data-page="officers" onclick="showPage('officers')"><i class="fas fa-user-tie"></i> Askarta Goobta</button>
-            <button type="button" class="sidebar-link" data-page="immigrants" onclick="showPage('immigrants')"><i class="fas fa-users"></i> Ajaanibta</button>
+            <button type="button" class="sidebar-link protected" data-page="admin" onclick="showPage('admin')"><i class="fas fa-user-shield"></i> Maamulka Sare<i class="fas fa-lock lock"></i></button>
+            <button type="button" class="sidebar-link protected" data-page="officers" onclick="showPage('officers')"><i class="fas fa-user-tie"></i> Askarta Goobta<i class="fas fa-lock lock"></i></button>
+            <button type="button" class="sidebar-link protected" data-page="immigrants" onclick="showPage('immigrants')"><i class="fas fa-users"></i> Ajaanibta<i class="fas fa-lock lock"></i></button>
             <button type="button" class="sidebar-link" data-page="countries" onclick="showPage('countries')"><i class="fas fa-globe-africa"></i> Wadamada</button>
             <button type="button" class="sidebar-link" data-page="somaliland" onclick="showPage('somaliland')"><i class="fas fa-map-marked-alt"></i> Somaliland</button>
             <button type="button" class="sidebar-link" data-page="offices" onclick="showPage('offices')"><i class="fas fa-building"></i> Xafiisyada</button>
-            <button type="button" class="sidebar-link" data-page="scan" onclick="showPage('scan')"><i class="fas fa-camera"></i> Weji-Aqoonsi</button>
+            <button type="button" class="sidebar-link protected" data-page="scan" onclick="showPage('scan')"><i class="fas fa-camera"></i> Weji-Aqoonsi<i class="fas fa-lock lock"></i></button>
             <div class="border-t border-white/5 my-4 pt-4">
-                <button type="button" class="sidebar-link" onclick="logout()"><i class="fas fa-sign-out-alt text-red-400"></i><span class="text-red-400">Ka Bax</span></button>
+                <button type="button" class="sidebar-link only-auth" onclick="logout()"><i class="fas fa-sign-out-alt text-red-400"></i><span class="text-red-400">Ka Bax</span></button>
+                <button type="button" class="sidebar-link only-guest" onclick="goLogin()"><i class="fas fa-sign-in-alt text-blue-400"></i><span class="text-blue-400">Gal (Login)</span></button>
             </div>
         </nav>
     </aside>
@@ -105,15 +111,18 @@
                     <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" id="statusDot"></span>
                     <span class="text-gray-400" id="statusText">Loading...</span>
                 </span>
-                <div class="flex items-center gap-3 bg-white/5 rounded-full px-4 py-2 border border-white/5">
+                <div class="flex items-center gap-3 bg-white/5 rounded-full px-4 py-2 border border-white/5 only-auth">
                     <i class="fas fa-user-circle text-gray-400 text-xl"></i>
                     <span class="text-sm text-gray-300" id="userRole">Admin</span>
                 </div>
+                <button type="button" onclick="goLogin()" class="flex items-center gap-2 bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl hover:bg-blue-500/30 transition only-guest"><i class="fas fa-sign-in-alt"></i> Gal (Login)</button>
+                <button type="button" onclick="logout()" class="flex items-center gap-2 bg-blue-500/20 text-blue-400 px-4 py-2 rounded-xl hover:bg-blue-500/30 transition only-auth"><i class="fas fa-sign-out-alt"></i> Ka Bax</button>
             </div>
         </div>
 
         <!-- PAGE: DASHBOARD -->
         <div id="page-dashboard" class="page-content active">
+            <div class="notice mb-6 only-guest"><i class="fas fa-info-circle mr-2"></i>Waxaad daawanaysaa dashboard-ka guud. Riix <b>Gal (Login)</b> si aad u aragto liiska ajaanibta, askarta iyo weji-aqoonsiga.</div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 <div class="stat-card">
                     <div class="flex items-center justify-between">
@@ -318,6 +327,58 @@
 
         <!-- PAGE: OFFICES -->
         <div id="page-offices" class="page-content">
+
+<div id="migraslStaffOfficesPanel" class="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
+  <div class="bg-gray-800/80 border border-gray-700 rounded-2xl p-5 shadow-lg">
+    <div class="flex items-center justify-between mb-4">
+      <div><h3 class="text-lg font-bold text-white">Staff CRUD</h3><p class="text-xs text-gray-400">Superadmin: Admin &amp; Officer ? Admin: Officer</p></div>
+      <button type="button" onclick="loadStaffManager()" class="px-3 py-1.5 text-xs rounded-lg bg-gray-700 text-gray-200">Refresh</button>
+    </div>
+    <form id="staffManageForm" onsubmit="saveStaffMember(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 bg-gray-900/60 p-3.5 rounded-xl border border-gray-700">
+      <input type="hidden" id="staffEditId" value="" />
+      <input type="text" id="staffUsername" required placeholder="username" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white" />
+      <input type="text" id="staffFullName" required placeholder="Full name" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white" />
+      <input type="password" id="staffPassword" placeholder="Password (optional on update)" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white" />
+      <select id="staffRoleSelect" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white">
+        <option value="officer">officer</option>
+        <option value="admin">admin</option>
+      </select>
+      <input type="text" id="staffOffice" placeholder="Office" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white" />
+      <label class="flex items-center gap-2 text-xs text-gray-300"><input type="checkbox" id="staffIsActive" checked /> Active</label>
+      <div class="sm:col-span-2 flex items-center gap-2">
+        <button type="submit" id="staffSubmitBtn" class="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold">Save Staff</button>
+        <button type="button" id="staffCancelEditBtn" onclick="resetStaffForm()" class="hidden px-3 py-2 rounded-lg bg-gray-700 text-gray-200 text-xs">Cancel</button>
+        <span id="staffFormMsg" class="text-xs text-emerald-400"></span>
+      </div>
+    </form>
+    <div class="overflow-x-auto"><table class="w-full text-left text-xs text-gray-300"><thead class="text-gray-400 border-b border-gray-700"><tr><th class="py-2">Name</th><th>User</th><th>Role</th><th>Office</th><th class="text-right">Action</th></tr></thead><tbody id="staffManagerBody" class="divide-y divide-gray-800"></tbody></table></div>
+  </div>
+  <div class="bg-gray-800/80 border border-gray-700 rounded-2xl p-5 shadow-lg">
+    <div class="flex items-center justify-between mb-4">
+      <div><h3 class="text-lg font-bold text-white">Offices CRUD</h3><p class="text-xs text-gray-400">Add/Update: Admin/Superadmin ? Delete: Superadmin</p></div>
+      <button type="button" onclick="loadOfficesManager()" class="px-3 py-1.5 text-xs rounded-lg bg-gray-700 text-gray-200">Refresh</button>
+    </div>
+    <form id="officeManageForm" onsubmit="saveOfficeItem(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 bg-gray-900/60 p-3.5 rounded-xl border border-gray-700">
+      <input type="hidden" id="officeEditId" value="" />
+      <input type="text" id="officeName" required placeholder="Office name" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white" />
+      <input type="text" id="officeCountry" required value="Somaliland" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white" />
+      <input type="text" id="officeCity" placeholder="City" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white" />
+      <select id="officeKind" class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-sm text-white">
+        <option value="office">office</option>
+        <option value="border">border</option>
+        <option value="embassy">embassy</option>
+      </select>
+      <label class="flex items-center gap-2 text-xs text-gray-300"><input type="checkbox" id="officeIsActive" checked /> Active</label>
+      <div class="flex items-center justify-end gap-2">
+        <button type="submit" id="officeSubmitBtn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Save Office</button>
+        <button type="button" id="officeCancelEditBtn" onclick="resetOfficeForm()" class="hidden px-3 py-2 rounded-lg bg-gray-700 text-gray-200 text-xs">Cancel</button>
+      </div>
+      <div class="sm:col-span-2"><span id="officeFormMsg" class="text-xs text-emerald-400"></span></div>
+    </form>
+    <div class="overflow-x-auto"><table class="w-full text-left text-xs text-gray-300"><thead class="text-gray-400 border-b border-gray-700"><tr><th class="py-2">Name</th><th>City/Country</th><th>Kind</th><th class="text-right">Action</th></tr></thead><tbody id="officesManagerBody" class="divide-y divide-gray-800"></tbody></table></div>
+  </div>
+</div>
+
             <div class="glass p-6">
                 <h3 class="text-lg font-semibold text-white mb-4">Xafiisyada</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="officesList"></div>
@@ -397,12 +458,11 @@ function escapeHtml(value) {
 // ============================================================
 // AUTHENTICATION
 // ============================================================
-function checkAuth() {
-    if (!authToken) {
-        window.location.href = 'login.html';
-        return false;
-    }
-    return true;
+const isLoggedIn = !!authToken;
+const PROTECTED_PAGES = ['admin', 'officers', 'immigrants', 'scan'];
+
+function goLogin() {
+    window.location.href = 'login.html';
 }
 
 function logout() {
@@ -415,17 +475,12 @@ function logout() {
 // API HELPERS
 // ============================================================
 async function apiFetch(endpoint, options = {}) {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
+    const headers = { 'Content-Type': 'application/json', ...options.headers };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
     if (response.status === 401) {
-        logout();
-        return null;
+        if (authToken) logout();   // token dhacay -> dib u gal
+        return null;               // marti: ha u gudbin login si toos ah
     }
     return response;
 }
@@ -437,6 +492,7 @@ async function loadStats() {
     try {
         const response = await apiFetch('/stats/');
         if (!response) return;
+        if (!response.ok) return;
         const data = await response.json();
 
         document.getElementById('totalImmigrants').textContent = data.stats.total_immigrants || 0;
@@ -497,6 +553,10 @@ async function loadImmigrants() {
 // PAGE NAVIGATION
 // ============================================================
 function showPage(page) {
+    if (PROTECTED_PAGES.includes(page) && !isLoggedIn) {
+        goLogin();
+        return;
+    }
     document.querySelectorAll('.page-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
 
@@ -575,7 +635,28 @@ async function scanFace() {
         document.getElementById('resultContent').classList.remove('hidden');
         document.getElementById('resultStatus').innerHTML = `<span class="badge badge-success">${data.status}</span>`;
         document.getElementById('resultMessage').textContent = data.message;
-        document.getElementById('faceDetails').innerHTML = `Waxaa la helay ${data.detected_faces} weji`;
+        let matchHtml = `<div class="text-sm text-gray-300">Waxaa la helay <strong>${data.detected_faces ?? 0}</strong> weji</div>`;
+        if (data.matched && data.immigrant) {
+            const imp = data.immigrant;
+            const photos = Array.isArray(data.photos) && data.photos.length ? data.photos : (imp.photos || []);
+            const photoCards = photos.map(p => {
+                const src = (p.url || '').startsWith('http') ? p.url : `${API_URL}${p.url || ''}`;
+                return `<img src="${src}" alt="${imp.name || 'Photo'}" class="w-16 h-16 rounded-lg object-cover border border-emerald-500/40" />`;
+            }).join('');
+            matchHtml += `
+                <div class="mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-sm space-y-1">
+                    <div class="font-semibold text-emerald-300">Aqoonsi La Helay (${imp.confidence ?? ''}% is-waafajin)</div>
+                    <div><span class="text-gray-400">Magaca:</span> <strong>${imp.name || '-'}</strong></div>
+                    <div><span class="text-gray-400">Baasaboor / Aqoonsi:</span> ${imp.passport_number || '-'}</div>
+                    <div><span class="text-gray-400">Dhalashada:</span> ${imp.nationality || '-'}</div>
+                    <div><span class="text-gray-400">Magaalada / Xafiiska:</span> ${imp.city || '-'} / ${imp.office || '-'}</div>
+                    <div><span class="text-gray-400">Heerka:</span> ${imp.status || '-'}</div>
+                    ${photoCards ? `<div class="pt-2 flex flex-wrap gap-2">${photoCards}</div>` : ''}
+                </div>`;
+        } else {
+            matchHtml += `<div class="mt-2 text-xs text-amber-300">Weli xog hore loogama helin wejigan diiwaanka.</div>`;
+        }
+        document.getElementById('faceDetails').innerHTML = matchHtml;
     } catch (error) {
         document.getElementById('loadingSpinner').classList.add('hidden');
         console.error('❌ Qalad:', error);
@@ -841,8 +922,145 @@ async function checkApiStatus() {
 // ============================================================
 // INIT
 // ============================================================
+
+async function syncDashboardSummaryAndStaff() {
+    if (!authToken) return;
+    try {
+        const sumRes = await fetch(`${API_URL}/dashboard/summary`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (sumRes.ok) {
+            const sum = await sumRes.json();
+            if (sum.user) {
+                currentUser = { ...currentUser, ...sum.user };
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                const roleEl = document.getElementById('userRole');
+                if (roleEl) {
+                    const rLabel = currentUser.role ? ` (${currentUser.role})` : '';
+                    roleEl.textContent = (currentUser.full_name || currentUser.username || 'User') + rLabel;
+                }
+            }
+            if (sum.counts) {
+                const setStat = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el && typeof val === 'number') el.textContent = val;
+                };
+                setStat('totalImmigrants', sum.counts.immigrants);
+                setStat('totalOfficers', sum.counts.staff);
+            }
+        }
+        const stRes = await fetch(`${API_URL}/staff/`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (stRes.ok) {
+            const staffList = await stRes.json();
+            window.migraslStaffList = Array.isArray(staffList) ? staffList : [];
+        }
+    } catch (e) {
+        console.warn('Sync summary/staff warning:', e);
+    }
+}
+
+
+let cachedStaffRows = [], cachedOfficeRows = [];
+function applyRoleUiGuards() {
+  const role = (currentUser && currentUser.role) || 'officer';
+  const sel = document.getElementById('staffRoleSelect');
+  if (sel) {
+    const opt = sel.querySelector('option[value="admin"]');
+    if (opt) opt.disabled = (role !== 'superadmin');
+    if (role !== 'superadmin') sel.value = 'officer';
+  }
+  if (role === 'officer') {
+    ['staffManageForm', 'officeManageForm'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+  }
+}
+async function loadStaffManager() {
+  const tb = document.getElementById('staffManagerBody');
+  if (!tb || !authToken) return;
+  applyRoleUiGuards();
+  const res = await fetch(`${API_URL}/staff/`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+  if (!res.ok) { tb.innerHTML = `<tr><td colspan="5" class="py-2 text-amber-400">HTTP ${res.status}</td></tr>`; return; }
+  cachedStaffRows = await res.json();
+  const myRole = (currentUser && currentUser.role) || 'officer';
+  tb.innerHTML = cachedStaffRows.map(s => {
+    const ok = myRole === 'superadmin' || (myRole === 'admin' && s.role === 'officer');
+    const act = ok ? `<button type="button" onclick="editStaffRow(${s.id})" class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 mr-1">Update</button><button type="button" onclick="deleteStaffRow(${s.id})" class="px-2 py-1 rounded bg-red-500/20 text-red-300">Del</button>` : '<span class="text-gray-500">Locked</span>';
+    return `<tr><td class="py-2 text-white">${s.full_name || '-'}</td><td>${s.username}</td><td>${s.role}</td><td>${s.office || '-'}</td><td class="text-right">${act}</td></tr>`;
+  }).join('');
+}
+function editStaffRow(id) {
+  const s = cachedStaffRows.find(x => x.id === id); if (!s) return;
+  staffEditId.value = s.id; staffUsername.value = s.username || ''; staffFullName.value = s.full_name || '';
+  staffPassword.value = ''; staffRoleSelect.value = s.role || 'officer'; staffOffice.value = s.office || '';
+  staffIsActive.checked = s.is_active !== false; staffSubmitBtn.textContent = 'Update Staff';
+  staffCancelEditBtn.classList.remove('hidden');
+}
+function resetStaffForm() {
+  staffEditId.value = ''; staffManageForm.reset(); staffIsActive.checked = true;
+  staffSubmitBtn.textContent = 'Save Staff'; staffCancelEditBtn.classList.add('hidden'); applyRoleUiGuards();
+}
+async function saveStaffMember(e) {
+  e.preventDefault();
+  const id = staffEditId.value;
+  const body = { username: staffUsername.value.trim(), full_name: staffFullName.value.trim(), role: staffRoleSelect.value, office: staffOffice.value.trim() || null, is_active: staffIsActive.checked };
+  if (staffPassword.value) body.password = staffPassword.value;
+  const res = await fetch(id ? `${API_URL}/staff/${id}` : `${API_URL}/staff/`, {
+    method: id ? 'PUT' : 'POST', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  const d = await res.json().catch(() => ({}));
+  staffFormMsg.textContent = res.ok ? 'Saved!' : (d.detail || `Error ${res.status}`);
+  if (res.ok) { resetStaffForm(); loadStaffManager(); }
+}
+async function deleteStaffRow(id) {
+  const res = await fetch(`${API_URL}/staff/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+  if (res.ok) loadStaffManager();
+}
+async function loadOfficesManager() {
+  const tb = document.getElementById('officesManagerBody');
+  if (!tb || !authToken) return;
+  const res = await fetch(`${API_URL}/offices/`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+  if (!res.ok) return;
+  cachedOfficeRows = await res.json();
+  const myRole = (currentUser && currentUser.role) || 'officer';
+  tb.innerHTML = cachedOfficeRows.map(o => {
+    const canE = myRole === 'superadmin' || myRole === 'admin';
+    const canD = myRole === 'superadmin';
+    const act = canE ? `<button type="button" onclick="editOfficeRow(${o.id})" class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 mr-1">Update</button>${canD ? `<button type="button" onclick="deleteOfficeRow(${o.id})" class="px-2 py-1 rounded bg-red-500/20 text-red-300">Del</button>` : ''}` : '<span class="text-gray-500">View</span>';
+    return `<tr><td class="py-2 text-white">${o.name}</td><td>${o.city || '-'}, ${o.country}</td><td>${o.kind}</td><td class="text-right">${act}</td></tr>`;
+  }).join('');
+}
+function editOfficeRow(id) {
+  const o = cachedOfficeRows.find(x => x.id === id); if (!o) return;
+  officeEditId.value = o.id; officeName.value = o.name || ''; officeCountry.value = o.country || 'Somaliland';
+  officeCity.value = o.city || ''; officeKind.value = o.kind || 'office'; officeIsActive.checked = o.is_active !== false;
+  officeSubmitBtn.textContent = 'Update Office'; officeCancelEditBtn.classList.remove('hidden');
+}
+function resetOfficeForm() {
+  officeEditId.value = ''; officeManageForm.reset(); officeCountry.value = 'Somaliland';
+  officeIsActive.checked = true; officeSubmitBtn.textContent = 'Save Office'; officeCancelEditBtn.classList.add('hidden');
+}
+async function saveOfficeItem(e) {
+  e.preventDefault();
+  const id = officeEditId.value;
+  const body = { name: officeName.value.trim(), country: officeCountry.value.trim(), city: officeCity.value.trim() || null, kind: officeKind.value, is_active: officeIsActive.checked };
+  const res = await fetch(id ? `${API_URL}/offices/${id}` : `${API_URL}/offices/`, {
+    method: id ? 'PUT' : 'POST', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  const d = await res.json().catch(() => ({}));
+  officeFormMsg.textContent = res.ok ? 'Saved!' : (d.detail || `Error ${res.status}`);
+  if (res.ok) { resetOfficeForm(); loadOfficesManager(); }
+}
+async function deleteOfficeRow(id) {
+  const res = await fetch(`${API_URL}/offices/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
+  if (res.ok) loadOfficesManager();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    if (!checkAuth()) return;
+    document.body.classList.toggle('guest', !isLoggedIn);
 
     const userRole = document.getElementById('userRole');
     if (userRole) userRole.textContent = currentUser.full_name || 'Admin';
@@ -851,8 +1069,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSomaliland();
     renderOffices();
     renderMissionNetwork();
-    renderAdminPresence();
-    renderOfficers();
+    if (isLoggedIn) {
+        renderAdminPresence();
+        renderOfficers();
+        syncDashboardSummaryAndStaff();
+        loadStaffManager();
+        loadOfficesManager();
+    }
     setTimeout(initCharts, 100);
     loadStats();
     checkApiStatus();
