@@ -40,3 +40,5 @@ uploads/
 backend-api/database.json
 
 node_modules/
+
+backend-api/uploads/
