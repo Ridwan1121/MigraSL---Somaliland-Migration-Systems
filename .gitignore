@@ -40,3 +40,5 @@ somaliland-preview.html
 !.vscode/settings.json
 .DS_Store
 Thumbs.db
+
+backend-api/database.json
