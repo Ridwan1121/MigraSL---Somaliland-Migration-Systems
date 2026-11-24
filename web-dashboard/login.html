@@ -36,7 +36,7 @@
         <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="mb-4">
                 <label for="username" class="block text-gray-400 text-sm mb-2">Username</label>
-                <input type="text" id="username" class="input-field" placeholder="Ridwan" required />
+                <input type="text" id="username" class="input-field" placeholder="Username" required />
             </div>
             <div class="mb-6">
                 <label for="password" class="block text-gray-400 text-sm mb-2">Password</label>
@@ -48,11 +48,6 @@
             </button>
         </form>
 
-        <div class="mt-6 p-4 bg-white/5 rounded-xl">
-            <p class="text-gray-400 text-xs mb-2">Demo Credentials:</p>
-            <p class="text-gray-300 text-xs">Admin: <span class="text-blue-400">Ridwan</span> / <span class="text-blue-400">AKIID12345</span></p>
-            <p class="text-gray-300 text-xs">Officer: <span class="text-emerald-400">officer</span> / <span class="text-emerald-400">officer123</span></p>
-        </div>
     </div>
 </div>
 
@@ -80,10 +75,26 @@ async function handleLogin(event) {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
         });
-        if (!response.ok) throw new Error('Username ama password qalad');
+        if (!response.ok) {
+            let msg = 'Username ama password qalad';
+            try {
+                const err = await response.json();
+                if (err && typeof err.detail === 'string') msg = err.detail;
+            } catch (e) {}
+            throw new Error(msg);
+        }
         const data = await response.json();
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        try {
+            const s = await fetch(`${API_URL}/dashboard/summary`, {
+                headers: { Authorization: `Bearer ${data.access_token}` }
+            });
+            if (s.ok) {
+                const sum = await s.json();
+                localStorage.setItem('permissions', JSON.stringify(sum.permissions || {}));
+            }
+        } catch (e) {}
         window.location.href = 'index.html';
     } catch (error) {
         errorDiv.textContent = error.message;
