@@ -22,6 +22,8 @@ from database import init_db, get_db, ImmigrantDB, OfficerDB, AdminDB, UserDB, S
 import staff
 import offices
 import extras
+import ranks
+from docs_branding import DESCRIPTION as DOCS_DESCRIPTION, swagger_docs_response
 import migrations
 migrations.run()
 
@@ -127,11 +129,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 # APP
 # ============================================================
 app = FastAPI(
-    docs_url=None,
     title="MigraSL API",
-    description="API-ga weji-aqoonsiga ee hay'adda socdaalka Somaliland",
-    version="2.0.0"
+    version="2.0.0",
+    description=DOCS_DESCRIPTION,
+    docs_url=None,
 )
+
+
+@app.get("/docs", include_in_schema=False)
+def custom_swagger_docs():
+    return swagger_docs_response()
+
 
 init_db()
 
@@ -180,6 +188,7 @@ class Admin(BaseModel):
 app.include_router(staff.build_router(get_current_user))
 app.include_router(offices.build_router(get_current_user))
 app.include_router(extras.build_router(get_current_user))
+app.include_router(ranks.build_router(get_current_user))
 
 
 @app.get("/")
