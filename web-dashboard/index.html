@@ -93,6 +93,8 @@
             <button type="button" class="sidebar-link" data-page="somaliland" onclick="showPage('somaliland')"><i class="fas fa-map-marked-alt"></i> Somaliland</button>
             <button type="button" class="sidebar-link" data-page="offices" onclick="showPage('offices')"><i class="fas fa-building"></i> Xafiisyada</button>
             <button type="button" class="sidebar-link protected" data-page="scan" onclick="showPage('scan')"><i class="fas fa-camera"></i> Weji-Aqoonsi<i class="fas fa-lock lock"></i></button>
+        <button type="button" class="sidebar-link protected" data-page="register" onclick="showPage('register')"><i class="fas fa-user-plus"></i> Diiwaangeli<i class="fas fa-lock lock"></i></button>
+        <button type="button" class="sidebar-link protected" data-page="editimm" onclick="showPage('editimm')"><i class="fas fa-user-pen"></i> Wax ka beddel/Tirtir<i class="fas fa-lock lock"></i></button>
             <div class="border-t border-white/5 my-4 pt-4">
                 <button type="button" class="sidebar-link only-auth" onclick="logout()"><i class="fas fa-sign-out-alt text-red-400"></i><span class="text-red-400">Ka Bax</span></button>
                 <button type="button" class="sidebar-link only-guest" onclick="goLogin()"><i class="fas fa-sign-in-alt text-blue-400"></i><span class="text-blue-400">Gal (Login)</span></button>
@@ -446,6 +448,14 @@
         </div>
 
         <!-- PAGE: SCAN -->
+        <div id="page-register" class="page-content">
+            <iframe id="frameRegister" title="Diiwaangeli" style="width:100%;height:calc(100vh - 170px);min-height:600px;border:0;border-radius:16px;background:transparent;"></iframe>
+        </div>
+
+        <div id="page-editimm" class="page-content">
+            <iframe id="frameEdit" title="Wax ka beddel/Tirtir" style="width:100%;height:calc(100vh - 170px);min-height:600px;border:0;border-radius:16px;background:transparent;"></iframe>
+        </div>
+
         <div id="page-scan" class="page-content">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="glass p-6">
@@ -612,6 +622,14 @@ async function loadImmigrants() {
 // ============================================================
 // PAGE NAVIGATION
 // ============================================================
+function loadEmbed(page) {
+    const isReg = page === 'register';
+    const f = document.getElementById(isReg ? 'frameRegister' : 'frameEdit');
+    if (!f) return;
+    // Diiwaangeli: mar uun ayuu soo dhacaa; Edit: mar walba cusub
+    if (!f.getAttribute('src') || !isReg) f.src = isReg ? 'form.html' : 'edit.html';
+}
+
 function showPage(page) {
     if (PROTECTED_PAGES.includes(page) && !isLoggedIn) {
         goLogin();
@@ -634,7 +652,9 @@ function showPage(page) {
         countries: ['Wadamada', 'Dadka aduunka oo dhan'],
         somaliland: ['Somaliland', '6 gobol'],
         offices: ['Xafiisyada', 'Liiska xafiisyada'],
-        scan: ['Weji-Aqoonsi', 'Aqoonso wejiyada']
+        scan: ['Weji-Aqoonsi', 'Aqoonso wejiyada'],
+        register: ['Diiwaangeli', 'Diiwaangeli ajaanib cusub'],
+        editimm: ['Wax ka beddel/Tirtir', 'Saxo ama tirtir xogta ajaanibta']
     };
     const [title, subtitle] = titles[page] || ['MigraSL', 'Somaliland Migration Systems'];
     document.getElementById('pageTitle').textContent = title;
@@ -642,6 +662,7 @@ function showPage(page) {
 
     if (page === 'dashboard') loadStats();
     if (page === 'immigrants') loadImmigrants();
+    if (page === 'register' || page === 'editimm') loadEmbed(page);
 
     console.log('📄 MigraSL Page:', page);
 }
