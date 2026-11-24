@@ -284,7 +284,11 @@ async def scan_face(file: UploadFile = File(...), db: Session = Depends(get_db),
                             known.append({"id": imp.id, "name": imp.name, "encoding": vec})
                     except Exception:
                         continue
-                hit = face_service.identify_face(enc, known) if known and hasattr(face_service, "identify_face") else None
+                hit = None
+                for k in known:
+                    r = face_service.compare_faces(k["encoding"], enc)
+                    if r.get("match") and (hit is None or r["confidence"] > hit["confidence"]):
+                        hit = {"match": True, "immigrant_id": k["id"], "confidence": r["confidence"]}
                 if hit and hit.get("match") and hit.get("immigrant_id"):
                     imp = db.query(ImmigrantDB).filter(ImmigrantDB.id == hit["immigrant_id"]).first()
                     if imp:
@@ -386,7 +390,11 @@ async def check_liveness(file: UploadFile = File(...), current_user: dict = Depe
 @app.get("/immigrants/")
 def get_immigrants(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     immigrants = db.query(ImmigrantDB).all()
-    return {"status": "success", "total": len(immigrants), "immigrants": immigrants}
+    rows = [
+        {c.name: getattr(i, c.name) for c in ImmigrantDB.__table__.columns if c.name != "face_encoding"}
+        for i in immigrants
+    ]
+    return {"status": "success", "total": len(rows), "immigrants": rows}
 
 
 @app.post("/immigrants/")
