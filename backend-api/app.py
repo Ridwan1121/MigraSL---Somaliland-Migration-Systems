@@ -22,6 +22,8 @@ from database import init_db, get_db, ImmigrantDB, OfficerDB, AdminDB, UserDB, S
 import staff
 import offices
 import extras
+import migrations
+migrations.run()
 
 try:
     from face_service import face_service
@@ -152,6 +154,8 @@ class Immigrant(BaseModel):
     entry_point: str = Field(..., min_length=2, max_length=100)
     district: str = Field(..., min_length=2, max_length=100)
     passport: Optional[str] = None
+    visit_reason: Optional[str] = Field(None, pattern="^(tourism|business|work|medical|education|family|other)$")
+    visit_reason_details: Optional[str] = Field(None, max_length=300)
     status: str = Field("registered", pattern="^(registered|pending|approved|rejected)$")
 
 
@@ -277,23 +281,26 @@ async def scan_face(file: UploadFile = File(...), db: Session = Depends(get_db),
                     try:
                         vec = json.loads(imp.face_encoding)
                         if isinstance(vec, list) and len(vec) > 0:
-                            known.append({"id": imp.id, "encoding": vec})
+                            known.append({"id": imp.id, "name": imp.name, "encoding": vec})
                     except Exception:
                         continue
                 hit = face_service.identify_face(enc, known) if known and hasattr(face_service, "identify_face") else None
-                if hit and hit.get("id"):
-                    imp = db.query(ImmigrantDB).filter(ImmigrantDB.id == hit["id"]).first()
+                if hit and hit.get("match") and hit.get("immigrant_id"):
+                    imp = db.query(ImmigrantDB).filter(ImmigrantDB.id == hit["immigrant_id"]).first()
                     if imp:
                         photos = db.query(extras.PhotoDB).filter(extras.PhotoDB.immigrant_id == imp.id).order_by(extras.PhotoDB.id.desc()).all()
                         matched_photos = [{"id": p.id, "url": f"/photos/file/{p.id}"} for p in photos]
                         matched_immigrant = {
                             "id": imp.id,
                             "name": getattr(imp, "name", None),
-                            "passport_number": getattr(imp, "passport_number", None),
-                            "nationality": getattr(imp, "nationality", None),
-                            "city": getattr(imp, "city", None),
-                            "office": getattr(imp, "office", None),
+                            "passport_number": imp.passport,
+                            "nationality": imp.country,
+                            "city": imp.district,
+                            "office": imp.entry_point,
                             "status": getattr(imp, "status", None),
+                            "region": imp.region,
+                            "visit_reason": getattr(imp, "visit_reason", None),
+                            "visit_reason_details": getattr(imp, "visit_reason_details", None),
                             "confidence": hit.get("confidence"),
                             "photos": matched_photos,
                         }

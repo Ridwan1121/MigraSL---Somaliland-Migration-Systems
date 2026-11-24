@@ -56,6 +56,8 @@ class ImmigrantDB(Base):
     passport = Column(String, nullable=True)
     status = Column(String, default="registered")
     face_encoding = Column(Text, nullable=True)
+    visit_reason = Column(String, nullable=True)
+    visit_reason_details = Column(String, nullable=True)
     registered_at = Column(DateTime, default=datetime.utcnow)
 
 
