@@ -67,6 +67,7 @@
         ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
         ::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.3); border-radius: 10px; }
     </style>
+<script src="rank-picker.js"></script>
 </head>
 <body>
 <div class="flex">
@@ -1054,46 +1055,164 @@ function applyRoleUiGuards() {
     });
   }
 }
+// ============================================================
+// STAFF MANAGER: darajada, xuquuqda server-ka, Cusbooneysii iyo Tirtir
+// ============================================================
+let migraslStaffRows = [];
+let migraslStaffPicker = null;
+
+async function migraslStaffErr(res) {
+    try {
+        const d = await res.json();
+        if (typeof d.detail === 'string') return d.detail;
+        if (Array.isArray(d.detail)) return d.detail.map(x => x.msg).join('; ');
+    } catch (e) {}
+    return 'HTTP ' + res.status;
+}
+
+function migraslStaffSay(el, text, ok) {
+    if (!el) return;
+    el.className = ok ? 'text-xs text-emerald-400' : 'text-xs text-red-400';
+    el.textContent = text;
+}
+
+function migraslStaffEnsureUi() {
+    const tb = document.getElementById('staffManagerBody');
+    const table = tb && tb.closest('table');
+    if (table && !table.dataset.rankCol) {
+        table.querySelector('thead').innerHTML =
+            '<tr><th class="py-2">Magaca</th><th>Username</th><th>Role</th><th>Darajada</th><th>Xafiiska</th><th class="text-right">Ficil</th></tr>';
+        table.dataset.rankCol = '1';
+    }
+    const office = document.getElementById('staffOffice');
+    if (office && window.RankPicker && !document.getElementById('staffRankBox')) {
+        const wrap = document.createElement('div');
+        wrap.id = 'staffRankBox';
+        wrap.className = 'sm:col-span-2';
+        wrap.innerHTML = '<label class="block text-xs text-gray-400 mb-1">Darajada (admin iyo officer waa loo baahan yahay)</label><div id="staffRankPicker"></div>';
+        office.parentNode.insertBefore(wrap, office);
+        migraslStaffPicker = RankPicker.mount('staffRankPicker', {});
+    }
+}
+
+function migraslStaffRender() {
+    const tb = document.getElementById('staffManagerBody');
+    if (!tb) return;
+    if (!migraslStaffRows.length) {
+        tb.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-gray-500">Ma jiro shaqaale</td></tr>';
+        return;
+    }
+    tb.innerHTML = migraslStaffRows.map(s => {
+        const r = window.RankPicker ? RankPicker.byCode(s.rank_code) : null;
+        const rankHtml = r
+            ? `${escapeHtml(r.so)} <span class="text-gray-500">· ${escapeHtml(r.en)}</span>`
+            : '<span class="text-amber-400">Lama dhigin</span>';
+        const inactive = s.is_active === false ? ' <span class="text-red-400">(joogta ma aha)</span>' : '';
+        const act = s.can_manage
+            ? `<button type="button" onclick="editStaffRow(${Number(s.id)})" class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 mr-1">Cusbooneysii</button><button type="button" onclick="deleteStaffRow(${Number(s.id)})" class="px-2 py-1 rounded bg-red-500/20 text-red-300">Tirtir</button>`
+            : '<span class="text-gray-500">Locked</span>';
+        return `<tr>
+            <td class="py-2 text-white">${escapeHtml(s.full_name || '-')}${inactive}</td>
+            <td>${escapeHtml(s.username)}</td>
+            <td>${escapeHtml(s.role)}</td>
+            <td>${rankHtml}</td>
+            <td>${escapeHtml(s.office || '-')}</td>
+            <td class="text-right">${act}</td>
+        </tr>`;
+    }).join('');
+}
+
 async function loadStaffManager() {
-  const tb = document.getElementById('staffManagerBody');
-  if (!tb || !authToken) return;
-  applyRoleUiGuards();
-  const res = await fetch(`${API_URL}/staff/`, { headers: { 'Authorization': `Bearer ${authToken}` } });
-  if (!res.ok) { tb.innerHTML = `<tr><td colspan="5" class="py-2 text-amber-400">HTTP ${res.status}</td></tr>`; return; }
-  cachedStaffRows = await res.json();
-  const myRole = (currentUser && currentUser.role) || 'officer';
-  tb.innerHTML = cachedStaffRows.map(s => {
-    const ok = myRole === 'superadmin' || (myRole === 'admin' && s.role === 'officer');
-    const act = ok ? `<button type="button" onclick="editStaffRow(${s.id})" class="px-2 py-1 rounded bg-blue-500/20 text-blue-300 mr-1">Update</button><button type="button" onclick="deleteStaffRow(${s.id})" class="px-2 py-1 rounded bg-red-500/20 text-red-300">Del</button>` : '<span class="text-gray-500">Locked</span>';
-    return `<tr><td class="py-2 text-white">${s.full_name || '-'}</td><td>${s.username}</td><td>${s.role}</td><td>${s.office || '-'}</td><td class="text-right">${act}</td></tr>`;
-  }).join('');
+    const tb = document.getElementById('staffManagerBody');
+    if (!tb || !authToken) return;
+    applyRoleUiGuards();
+    migraslStaffEnsureUi();
+    if (window.RankPicker) { try { await RankPicker.preload(); } catch (e) {} }
+    try {
+        const res = await fetch(`${API_URL}/staff/`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+        if (!res.ok) {
+            tb.innerHTML = `<tr><td colspan="6" class="py-2 text-amber-400">${escapeHtml(await migraslStaffErr(res))}</td></tr>`;
+            return;
+        }
+        migraslStaffRows = await res.json();
+        migraslStaffRender();
+    } catch (e) {
+        tb.innerHTML = `<tr><td colspan="6" class="py-2 text-red-400">Qalad: ${escapeHtml(e.message)}</td></tr>`;
+    }
 }
+
 function editStaffRow(id) {
-  const s = cachedStaffRows.find(x => x.id === id); if (!s) return;
-  staffEditId.value = s.id; staffUsername.value = s.username || ''; staffFullName.value = s.full_name || '';
-  staffPassword.value = ''; staffRoleSelect.value = s.role || 'officer'; staffOffice.value = s.office || '';
-  staffIsActive.checked = s.is_active !== false; staffSubmitBtn.textContent = 'Update Staff';
-  staffCancelEditBtn.classList.remove('hidden');
+    const s = migraslStaffRows.find(x => x.id === id);
+    if (!s) return;
+    document.getElementById('staffEditId').value = s.id;
+    document.getElementById('staffUsername').value = s.username || '';
+    document.getElementById('staffUsername').readOnly = true;
+    document.getElementById('staffFullName').value = s.full_name || '';
+    document.getElementById('staffPassword').value = '';
+    document.getElementById('staffRoleSelect').value = s.role || 'officer';
+    document.getElementById('staffOffice').value = s.office || '';
+    document.getElementById('staffIsActive').checked = s.is_active !== false;
+    document.getElementById('staffSubmitBtn').textContent = 'Cusbooneysii';
+    document.getElementById('staffCancelEditBtn').classList.remove('hidden');
+    if (migraslStaffPicker) migraslStaffPicker.setValue(s.rank_code || '');
 }
+
 function resetStaffForm() {
-  staffEditId.value = ''; staffManageForm.reset(); staffIsActive.checked = true;
-  staffSubmitBtn.textContent = 'Save Staff'; staffCancelEditBtn.classList.add('hidden'); applyRoleUiGuards();
+    const f = document.getElementById('staffManageForm');
+    if (f) f.reset();
+    document.getElementById('staffEditId').value = '';
+    document.getElementById('staffIsActive').checked = true;
+    document.getElementById('staffUsername').readOnly = false;
+    document.getElementById('staffSubmitBtn').textContent = 'Save Staff';
+    document.getElementById('staffCancelEditBtn').classList.add('hidden');
+    if (migraslStaffPicker) migraslStaffPicker.reset();
+    applyRoleUiGuards();
 }
+
 async function saveStaffMember(e) {
-  e.preventDefault();
-  const id = staffEditId.value;
-  const body = { username: staffUsername.value.trim(), full_name: staffFullName.value.trim(), role: staffRoleSelect.value, office: staffOffice.value.trim() || null, is_active: staffIsActive.checked };
-  if (staffPassword.value) body.password = staffPassword.value;
-  const res = await fetch(id ? `${API_URL}/staff/${id}` : `${API_URL}/staff/`, {
-    method: id ? 'PUT' : 'POST', headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-  });
-  const d = await res.json().catch(() => ({}));
-  staffFormMsg.textContent = res.ok ? 'Saved!' : (d.detail || `Error ${res.status}`);
-  if (res.ok) { resetStaffForm(); loadStaffManager(); }
+    e.preventDefault();
+    const msg = document.getElementById('staffFormMsg');
+    const id = document.getElementById('staffEditId').value;
+    const pw = document.getElementById('staffPassword').value;
+    const body = {
+        full_name: document.getElementById('staffFullName').value.trim(),
+        role: document.getElementById('staffRoleSelect').value,
+        rank_code: (migraslStaffPicker && migraslStaffPicker.getValue()) || null,
+        office: document.getElementById('staffOffice').value.trim() || null,
+        is_active: document.getElementById('staffIsActive').checked
+    };
+    if (pw && pw.length < 8) return migraslStaffSay(msg, 'Password-ku waa inuu ahaadaa ugu yaraan 8 xaraf', false);
+    if (!id && !pw) return migraslStaffSay(msg, 'Qof cusub wuxuu u baahan yahay password', false);
+    if (!id) body.username = document.getElementById('staffUsername').value.trim();
+    if (pw) body.password = pw;
+    try {
+        const res = await fetch(id ? `${API_URL}/staff/${id}` : `${API_URL}/staff/`, {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) return migraslStaffSay(msg, await migraslStaffErr(res), false);
+        migraslStaffSay(msg, id ? 'Waa la cusbooneysiiyay' : 'Waa la kaydiyay', true);
+        resetStaffForm();
+        loadStaffManager();
+    } catch (err) {
+        migraslStaffSay(msg, 'Qalad: ' + err.message, false);
+    }
 }
+
 async function deleteStaffRow(id) {
-  const res = await fetch(`${API_URL}/staff/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${authToken}` } });
-  if (res.ok) loadStaffManager();
+    const s = migraslStaffRows.find(x => x.id === id);
+    if (!confirm(`Ma hubtaa inaad tirtirto "${s ? s.full_name : id}"?`)) return;
+    try {
+        const res = await fetch(`${API_URL}/staff/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!res.ok) { alert(await migraslStaffErr(res)); return; }
+        loadStaffManager();
+    } catch (err) {
+        alert('Qalad: ' + err.message);
+    }
 }
 async function loadOfficesManager() {
   const tb = document.getElementById('officesManagerBody');
