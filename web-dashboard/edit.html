@@ -20,6 +20,7 @@
         .error-message { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px; border-radius: 8px; }
         .success-message { background: rgba(34,197,94,0.2); border: 1px solid rgba(34,197,94,0.3); color: #22c55e; padding: 12px; border-radius: 8px; }
     </style>
+<style>#editVisitReason option { background: #0f172a; color: #fff; }</style>
 </head>
 <body>
 <div class="flex">
@@ -104,6 +105,23 @@
                 <div><label for="editEntryPoint" class="block text-gray-400 text-sm mb-2">Xudduudda *</label><input type="text" id="editEntryPoint" class="input-field" required /></div>
                 <div><label for="editDistrict" class="block text-gray-400 text-sm mb-2">Degmada *</label><input type="text" id="editDistrict" class="input-field" required /></div>
                 <div><label for="editPassport" class="block text-gray-400 text-sm mb-2">Baasaboorka</label><input type="text" id="editPassport" class="input-field" /></div>
+<div>
+    <label for="editVisitReason" class="block text-gray-400 text-sm mb-2">Sababta Booqashada</label>
+    <select id="editVisitReason" class="input-field" onchange="toggleEditVisitDetails()">
+        <option value="">Ma la sheegin</option>
+        <option value="tourism">Dalxiis / Tourism</option>
+        <option value="business">Ganacsi / Business</option>
+        <option value="work">Shaqo / Work</option>
+        <option value="medical">Caafimaad / Medical</option>
+        <option value="education">Waxbarasho / Education</option>
+        <option value="family">Booqasho qoys / Family Visit</option>
+        <option value="other">Wax kale / Other</option>
+    </select>
+</div>
+<div id="editVisitDetailsBox" class="hidden" style="grid-column: 1 / -1;">
+    <label for="editVisitDetails" class="block text-gray-400 text-sm mb-2">Faahfaahin (sababta kale)</label>
+    <input type="text" id="editVisitDetails" class="input-field" maxlength="300" />
+</div>
             </div>
             <div class="mt-6 flex gap-3">
                 <button type="submit" class="btn-primary flex-1"><i class="fas fa-save mr-2"></i> Cusbooneysii</button>
@@ -136,120 +154,153 @@ async function migraslAttachPhotoAfterSave(responseData, fallbackId) {
 
 </script>
 <script>
-    const API_URL = window.MIGRASL_API_URL;
-    const token = localStorage.getItem('access_token');
+const API_URL = window.MIGRASL_API_URL;
+const token = localStorage.getItem('access_token');
+if (!token) window.location.href = 'login.html';
 
-    if (!token) window.location.href = 'login.html';
+let immigrantsById = {};
 
-    async function loadImmigrants() {
-        try {
-            const response = await fetch(`${API_URL}/immigrants/`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error('Qalad dhacay');
-            const data = await response.json();
-            const table = document.getElementById('immigrantsTable');
+function escapeHtml(v) {
+    return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
-            if (data.immigrants && data.immigrants.length > 0) {
-                table.innerHTML = data.immigrants.map(i => `
-                    <tr class="table-row">
-                        <td class="py-3 text-gray-400">${i.id}</td>
-                        <td class="py-3 text-white">${i.name}</td>
-                        <td class="py-3 text-gray-300">${i.country}</td>
-                        <td class="py-3 text-gray-300">${i.region}</td>
-                        <td class="py-3 text-gray-300">${i.entry_point}</td>
-                        <td class="py-3 text-gray-300">${i.district}</td>
-                        <td class="py-3"><span class="badge badge-success">${i.status}</span></td>
-                        <td class="py-3">
-                            <button onclick="openEditModal(${i.id}, '${i.name}', '${i.country}', '${i.region}', '${i.entry_point}', '${i.district}', '${i.passport || ''}')" class="text-blue-400 hover:text-blue-300 mr-3"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteImmigrant(${i.id}, '${i.name}')" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
-            } else {
-                table.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400">Ma jiro ajaanib</td></tr>';
-            }
-        } catch (error) {
-            showError('Qalad: ' + error.message);
+async function readError(response) {
+    try {
+        const err = await response.json();
+        if (typeof err.detail === 'string') return err.detail;
+    } catch (e) {}
+    return `HTTP ${response.status}`;
+}
+
+async function loadImmigrants() {
+    try {
+        const response = await fetch(`${API_URL}/immigrants/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error(await readError(response));
+        const data = await response.json();
+        const list = data.immigrants || [];
+        immigrantsById = Object.fromEntries(list.map(i => [i.id, i]));
+        const table = document.getElementById('immigrantsTable');
+
+        if (list.length === 0) {
+            table.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400">Ma jiro ajaanib</td></tr>';
+            return;
         }
+        table.innerHTML = list.map(i => `
+            <tr class="table-row">
+                <td class="py-3 text-gray-400">${Number(i.id)}</td>
+                <td class="py-3 text-white">${escapeHtml(i.name)}</td>
+                <td class="py-3 text-gray-300">${escapeHtml(i.country)}</td>
+                <td class="py-3 text-gray-300">${escapeHtml(i.region)}</td>
+                <td class="py-3 text-gray-300">${escapeHtml(i.entry_point)}</td>
+                <td class="py-3 text-gray-300">${escapeHtml(i.district)}</td>
+                <td class="py-3"><span class="badge badge-success">${escapeHtml(i.status)}</span></td>
+                <td class="py-3">
+                    <button onclick="openEditModal(${Number(i.id)})" class="text-blue-400 hover:text-blue-300 mr-3"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteImmigrant(${Number(i.id)})" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`).join('');
+    } catch (error) {
+        showError('Qalad: ' + error.message);
     }
+}
 
-    function openEditModal(id, name, country, region, entryPoint, district, passport) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editName').value = name;
-        document.getElementById('editCountry').value = country;
-        document.getElementById('editRegion').value = region;
-        document.getElementById('editEntryPoint').value = entryPoint;
-        document.getElementById('editDistrict').value = district;
-        document.getElementById('editPassport').value = passport;
-        document.getElementById('editModal').classList.remove('hidden');
+function toggleEditVisitDetails() {
+    const other = document.getElementById('editVisitReason').value === 'other';
+    document.getElementById('editVisitDetailsBox').classList.toggle('hidden', !other);
+    if (!other) document.getElementById('editVisitDetails').value = '';
+}
+
+function openEditModal(id) {
+    const i = immigrantsById[id];
+    if (!i) return;
+    document.getElementById('editId').value = i.id;
+    document.getElementById('editName').value = i.name || '';
+    document.getElementById('editCountry').value = i.country || '';
+    document.getElementById('editRegion').value = i.region || '';
+    document.getElementById('editEntryPoint').value = i.entry_point || '';
+    document.getElementById('editDistrict').value = i.district || '';
+    document.getElementById('editPassport').value = i.passport || '';
+    document.getElementById('editVisitReason').value = i.visit_reason || '';
+    document.getElementById('editVisitDetails').value = i.visit_reason_details || '';
+    toggleEditVisitDetails();
+    document.getElementById('editModal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.add('hidden');
+}
+
+async function handleEditSubmit(event) {
+    event.preventDefault();
+    const id = document.getElementById('editId').value;
+    const reason = document.getElementById('editVisitReason').value || null;
+    const details = (document.getElementById('editVisitDetails').value || '').trim();
+    if (reason === 'other' && !details) {
+        showError('Fadlan qor sababta kale ee booqashada');
+        return;
     }
-
-    function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
-    }
-
-    async function handleEditSubmit(event) {
-        event.preventDefault();
-        const id = document.getElementById('editId').value;
-        const data = {
-            name: document.getElementById('editName').value,
-            country: document.getElementById('editCountry').value,
-            region: document.getElementById('editRegion').value,
-            entry_point: document.getElementById('editEntryPoint').value,
-            district: document.getElementById('editDistrict').value,
-            passport: document.getElementById('editPassport').value || null,
-            status: 'registered'
-        };
-
-        try {
-            const response = await fetch(`${API_URL}/immigrants/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(data)
-            });
-            if (!response.ok) throw new Error('Qalad dhacay');
-            showSuccess('✅ Ajaanib waa la cusbooneysiiyay!');
-            closeEditModal();
-            loadImmigrants();
-        } catch (error) {
-            showError('❌ Qalad: ' + error.message);
+    const data = {
+        name: document.getElementById('editName').value,
+        country: document.getElementById('editCountry').value,
+        region: document.getElementById('editRegion').value,
+        entry_point: document.getElementById('editEntryPoint').value,
+        district: document.getElementById('editDistrict').value,
+        passport: document.getElementById('editPassport').value || null,
+        visit_reason: reason,
+        visit_reason_details: reason === 'other' ? details : null,
+        status: (immigrantsById[id] || {}).status || 'registered'
+    };
+    try {
+        const response = await fetch(`${API_URL}/immigrants/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error(await readError(response));
+        if (document.getElementById('migraslPhotoInput').files.length) {
+            await migraslUploadImmigrantPhoto(id, API_URL, token);
         }
+        showSuccess('✅ Ajaanib waa la cusbooneysiiyay!');
+        closeEditModal();
+        loadImmigrants();
+    } catch (error) {
+        showError('❌ Qalad: ' + error.message);
     }
+}
 
-    async function deleteImmigrant(id, name) {
-        if (!confirm(`Ma hubtaa inaad tirtirto "${name}"?`)) return;
-        try {
-            const response = await fetch(`${API_URL}/immigrants/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error('Qalad dhacay');
-            showSuccess('✅ Ajaanib waa la tirtiray!');
-            loadImmigrants();
-        } catch (error) {
-            showError('❌ Qalad: ' + error.message);
-        }
+async function deleteImmigrant(id) {
+    const name = (immigrantsById[id] || {}).name || id;
+    if (!confirm(`Ma hubtaa inaad tirtirto "${name}"?`)) return;
+    try {
+        const response = await fetch(`${API_URL}/immigrants/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error(await readError(response));
+        showSuccess('✅ Ajaanib waa la tirtiray!');
+        loadImmigrants();
+    } catch (error) {
+        showError('❌ Qalad: ' + error.message);
     }
+}
 
-    function showError(msg) {
-        const div = document.getElementById('errorMessage');
-        div.textContent = msg;
-        div.classList.remove('hidden');
-        setTimeout(() => div.classList.add('hidden'), 5000);
-    }
+function showError(msg) {
+    const div = document.getElementById('errorMessage');
+    div.textContent = msg;
+    div.classList.remove('hidden');
+    setTimeout(() => div.classList.add('hidden'), 5000);
+}
 
-    function showSuccess(msg) {
-        const div = document.getElementById('successMessage');
-        div.textContent = msg;
-        div.classList.remove('hidden');
-        setTimeout(() => div.classList.add('hidden'), 5000);
-    }
+function showSuccess(msg) {
+    const div = document.getElementById('successMessage');
+    div.textContent = msg;
+    div.classList.remove('hidden');
+    setTimeout(() => div.classList.add('hidden'), 5000);
+}
 
-    loadImmigrants();
+loadImmigrants();
 </script>
 
 <script>
